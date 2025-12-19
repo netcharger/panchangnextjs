@@ -1,0 +1,48 @@
+{
+  "date": "2025-11-26",
+  "day_name": "Wednesday",
+  "soumya_vasara": "సౌమ్య వాసర:",
+  "samvatsaram": "విశ్వావసు నామ",
+  "masam": "మార్గశిర",
+  "rutuvu": "హేమంత",
+  "ayanam": "దక్షిణాయణం",
+  "sunrise": "6.12 AM",
+  "sunset": "5.25 PM",
+  "special_events": [
+    "సుబ్రహ్మణ్య షష్ఠి",
+    "శుక్రమూడమీ ప్రారంభం"
+  ],
+  "tithi": {
+    "name": "శుక్ల షష్ఠి",
+    "until": "రా. 7.14",
+    "next": "సప్తమి"
+  },
+  "nakshatram": {
+    "name": "శ్రవణం",
+    "until": "రా. 10.03",
+    "next": "ధనిష్ట"
+  },
+  "yogam": {
+    "name": "వృద్ది",
+    "until": "ఉ.8.43",
+    "next": "ధృవం"
+  },
+  "karanam": {
+    "name": "కౌలవ",
+    "until": "ఉ. 9.13",
+    "next": "గరజి"
+  },
+  "auspicious_type": "సామాన్యము",
+  "rahukalam": "ప. 12:00 నుండి 1:30 వరకు",
+  "yamagandam": "7.30 AM - 9.00 AM",
+  "durmuhurtam": "ఉ. 11.36 నుండి 12.24 వరకు",
+  "vargyam": "రా. 2.06 నుండి 3.42 వరకు",
+  "amrutha_ghadiyalu": "ఉ. 11.14 నుండి 12.54 వరకు",
+  "festivals": [
+    {
+      "name": "సుబ్రహ్మణ్య షష్ఠి",
+      "description": "Special festival description"
+    }
+  ]
+}
+
