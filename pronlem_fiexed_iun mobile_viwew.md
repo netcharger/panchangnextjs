@@ -92,7 +92,7 @@ This helped quickly catch the wrong base URL.
 
 ```js
 const getBaseURL = () => {
-  return "http://192.168.1.2:8000";
+  return "http://http://ywkg444gow0k0sk4skkss0gc.65.108.213.103.sslip.io";
 };
 ```
 
@@ -223,7 +223,7 @@ const getBaseURL = () => {
   }
 
   // DEVELOPMENT: use LAN IP so mobile & webview can access
-  return "http://192.168.1.2:8000";
+  return "http://http://ywkg444gow0k0sk4skkss0gc.65.108.213.103.sslip.io";
 };
 
 export default getBaseURL;
