@@ -1,26 +1,48 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FaPlay, FaPause, FaBell, FaDownload } from "react-icons/fa";
+import { FaPlay, FaPause, FaBell, FaDownload, FaCheck, FaSpinner } from "react-icons/fa";
 import { sendToNative, onNativeMessage } from "../lib/webviewBridge";
 import getBaseURL from "../lib/getBaseURL";
 
 export default function MusicList({ tracks = [], onSetAlarm }) {
   const [playingId, setPlayingId] = useState(null);
   const [playingAudioUrl, setPlayingAudioUrl] = useState(null);
-  const [downloadedTrackIds, setDownloadedTrackIds] = useState([]);
+  const audioRef = useRef(null);
+  const [trackStatuses, setTrackStatuses] = useState({});
 
   useEffect(() => {
     const cleanup = onNativeMessage((payload) => {
-      if (payload?.type === "TRACK_DOWNLOADED" && payload.trackId) {
-        setDownloadedTrackIds((prev) =>
-          prev.includes(payload.trackId) ? prev : [...prev, payload.trackId]
-        );
+      if (payload?.trackId) {
+        const trackKey = String(payload.trackId);
+        if (payload.type === "TRACK_DOWNLOADED") {
+          setTrackStatuses((prev) => ({
+            ...prev,
+            [trackKey]: { ...prev[trackKey], isDownloaded: true, isDownloading: false },
+          }));
+        } else if (payload.type === "TRACK_DOWNLOAD_FAILED") {
+          setTrackStatuses((prev) => ({
+            ...prev,
+            [trackKey]: { ...prev[trackKey], isDownloading: false },
+          }));
+        }
       }
     });
     return cleanup;
   }, []);
-  const audioRef = useRef(null);
+
+  const updateTrackStatus = (trackId, changes) => {
+    const key = String(trackId);
+    setTrackStatuses((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], ...changes },
+    }));
+  };
+
+  const getTrackStatus = (trackId) => {
+    const key = String(trackId);
+    return trackStatuses[key] || { isDownloaded: false, isDownloading: false };
+  };
 
   // Helper function to get full audio URL
   const getFullAudioUrl = (audioUrl) => {
@@ -81,8 +103,9 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
       return;
     }
 
-    if (!downloadedTrackIds.includes(track.id)) {
-      setDownloadedTrackIds((prev) => [...prev, track.id]);
+    const status = getTrackStatus(track.id);
+    if (!status.isDownloaded && !status.isDownloading) {
+      updateTrackStatus(track.id, { isDownloading: true });
     }
 
     // Pause and cleanup currently playing audio if any
@@ -176,12 +199,28 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
     }
   };
 
+  const handleDownloadPress = (track, audioUrl) => {
+    if (!audioUrl) return;
+    const status = getTrackStatus(track.id);
+    if (status.isDownloaded || status.isDownloading) return;
+    updateTrackStatus(track.id, { isDownloading: true });
+    sendToNative({
+      type: "DOWNLOAD_TRACK",
+      trackId: track.id,
+      trackTitle: track.title || track.name,
+      audioUrl,
+    });
+  };
+
   return (
     <div className="space-y-3">
       {tracks.map((t, idx) => {
         const isPlaying = playingId === t.id;
         const rawAudioUrl = t.mp3_file || t.audio_file || t.url;
         const audioUrl = getFullAudioUrl(rawAudioUrl);
+        const status = getTrackStatus(t.id);
+        const isDownloaded = status.isDownloaded;
+        const isDownloading = status.isDownloading;
         
         return (
         <div 
@@ -201,17 +240,21 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
               )}
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {onSetAlarm && downloadedTrackIds.includes(t.id) ? (
+              {isDownloading ? (
                 <button
-                  onClick={() => onSetAlarm(t)}
-                  className="p-2 rounded-lg bg-gradient-to-r from-saffron-400 to-saffron-500 text-white shadow-md hover:shadow-glow active:scale-95 transition-all duration-200"
-                  title="Set as Alarm"
+                  className="p-2 rounded-lg bg-gray-200 text-gray-600 shadow-md"
+                  title="Downloading..."
+                  disabled
                 >
-                  <FaBell size={14} />
+                  <FaSpinner className="animate-spin" size={14} />
                 </button>
+              ) : isDownloaded ? (
+                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-500 shadow-inner">
+                  <FaCheck size={14} />
+                </div>
               ) : (
                 <button
-                  onClick={() => handlePlay(t)}
+                  onClick={() => handleDownloadPress(t, audioUrl)}
                   disabled={!audioUrl}
                   className={`p-2 rounded-lg bg-gradient-to-r ${audioUrl ? "from-stone-400 to-stone-500 hover:shadow-lg" : "from-stone-300 to-stone-400 opacity-50 cursor-not-allowed"} text-white shadow-md active:scale-95 transition-all duration-200`}
                   title="Download audio"
@@ -219,17 +262,27 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
                   <FaDownload size={14} />
                 </button>
               )}
-              <button 
-                  onClick={() => handlePlay(t)}
-                  disabled={!audioUrl}
-                  className={`p-2 rounded-lg text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 ${
-                    isPlaying 
-                      ? "bg-gradient-to-r from-red-400 to-red-500" 
-                      : "bg-gradient-to-r from-indigo-400 to-indigo-500"
-                  } ${!audioUrl ? "opacity-50 cursor-not-allowed" : ""}`}
-                  title={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} />}
+              <button
+                onClick={() => isDownloaded && onSetAlarm?.(t)}
+                disabled={!isDownloaded}
+                className={`p-2 rounded-lg shadow-md transition-all duration-200 ${
+                  isDownloaded ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-white hover:shadow-glow" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+                title={isDownloaded ? "Set as Alarm" : "Download first to enable alarm"}
+              >
+                <FaBell size={14} />
+              </button>
+              <button
+                onClick={() => handlePlay(t)}
+                disabled={!audioUrl || isDownloading}
+                className={`p-2 rounded-lg text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 ${
+                  isPlaying
+                    ? "bg-gradient-to-r from-red-400 to-red-500"
+                    : "bg-gradient-to-r from-indigo-400 to-indigo-500"
+                } ${(!audioUrl || isDownloading) ? "opacity-50 cursor-not-allowed" : ""}`}
+                title={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} />}
               </button>
             </div>
           </div>

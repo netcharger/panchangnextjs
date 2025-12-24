@@ -22,7 +22,7 @@ A stunning mobile-first Panchangam calendar app built with Next.js and Tailwind 
    NEXT_PUBLIC_API_BASE=http://10.0.2.2:8000
    
    # iOS Simulator / Real Device (replace with your PC's LAN IP)
-   NEXT_PUBLIC_API_BASE=http://192.168.1.4:8888
+   NEXT_PUBLIC_API_BASE=http://192.168.1.2:8888
    ```
    
    **For Production Web:**
@@ -47,11 +47,11 @@ The app automatically detects the environment and uses the appropriate API base 
 - **Environment Override**: Uses `NEXT_PUBLIC_API_BASE` environment variable if set
 
 ### Default URLs (when not set via env):
-- **Android WebView**: `http://192.168.1.4:8888`
-- **iOS WebView**: `http://192.168.1.4:8888`
+- **Android WebView**: `http://192.168.1.2:8888`
+- **iOS WebView**: `http://192.168.1.2:8888`
 - **Regular Web**: `https://api.yourdomain.com`
 
-**Important**: Replace `192.168.1.4:8888` with your actual PC's LAN IP address and port in `lib/getBaseURL.js` or use `.env.local` file.
+**Important**: Replace `192.168.1.2:8888` with your actual PC's LAN IP address and port in `lib/getBaseURL.js` or use `.env.local` file.
 
 ### Finding Your PC's LAN IP:
 - **Windows**: Run `ipconfig` and look for IPv4 Address

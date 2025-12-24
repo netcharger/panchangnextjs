@@ -10,6 +10,7 @@ import { FaChevronLeft, FaMusic, FaHeadphones } from "react-icons/fa";
 import { getImageSize } from "../../../lib/image_sizes";
 import MusicList from "../../../components/MusicList";
 import { sendToNative } from "../../../lib/webviewBridge";
+import getBaseURL from "../../../lib/getBaseURL";
 
 export default function MusicCategoryPage() {
   const params = useParams();
@@ -60,8 +61,26 @@ export default function MusicCategoryPage() {
     }
   }, [audioFiles, audioFilesError]);
 
-  function onSetAlarm(track) {
-    sendToNative({ type: "SET_ALARM_WITH_TRACK", trackId: track.id, trackTitle: track.title });
+  const buildFullAudioUrl = (rawUrl) => {
+    if (!rawUrl) return null;
+    if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+      return rawUrl;
+    }
+    const baseURL = getBaseURL();
+    const cleanUrl = rawUrl.startsWith("/") ? rawUrl.substring(1) : rawUrl;
+    return `${baseURL.replace(/\/$/, "")}/${cleanUrl}`;
+  };
+
+  function onSetAlarm(track, audioUrl) {
+    const resolvedAudioUrl =
+      audioUrl || buildFullAudioUrl(track.mp3_file || track.audio_file || track.url);
+
+    sendToNative({
+      type: "SET_ALARM_WITH_TRACK",
+      trackId: track.id,
+      trackTitle: track.title || track.name,
+      audioUrl: resolvedAudioUrl,
+    });
   }
 
   return (
