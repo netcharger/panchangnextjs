@@ -5,6 +5,12 @@ import { FaBars, FaTimes, FaHome, FaCalendarAlt, FaThList, FaImages, FaMusic, Fa
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
+import { Dhurjati } from "next/font/google";
+
+const dhurjati = Dhurjati({
+  subsets: ["telugu"],
+  weight: "400",
+});
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,9 +74,13 @@ export default function Header() {
                 {menuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
               </button>
               <Link href="/" onClick={closeMenu} className="flex items-center">
-                <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center">
-                  <span className="text-saffron-700 text-xs font-bold">प</span>
+                <div className="w-8 h-8 rounded-sm flex items-center justify-center">
+                  <span className="text-saffron-700 text-xs font-bold"><img src="logo-icon.png" alt="Logo" className="w-full h-full object-contain" /> </span>
+
                 </div>
+                <h2 className={`${dhurjati.className} text-saffron-700 ml-2 text-2xl font-bold`}>
+                స్వస్తిక్ పంచాంగం
+                </h2>
               </Link>
             </div>
             <div className="flex items-center gap-4">
@@ -117,10 +127,10 @@ export default function Header() {
                 <span className="text-white text-2xl font-bold">प</span>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-indigo-700">
-                  Panchangam
+                <h2 className={`${dhurjati.className} text-xl font-bold text-indigo-700`}>
+                స్వస్తిక్
                 </h2>
-                <p className="text-xs text-indigo-500">Calendar App</p>
+                <p className={`${dhurjati.className} text-xs text-indigo-500`}>పంచాంగం</p>
               </div>
             </div>
           </div>

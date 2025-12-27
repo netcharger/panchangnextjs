@@ -1,36 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import { FaTimes, FaDownload, FaImage, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { sendToNative } from "../lib/webviewBridge";
-
-import {getImageSize} from "../lib/image_sizes";
-import { Suranna } from "next/font/google";
-const suranna = Suranna({
-  subsets: ["telugu"],
-  weight: "400",
-});
-import { Suravaram } from "next/font/google";
-
-const suravaram = Suravaram({
-  subsets: ["telugu"],
-  weight: "400",
-});
-
+import { getImageSize } from "../lib/image_sizes";
 import { Mallanna } from "next/font/google";
+
 const mallanna = Mallanna({
   subsets: ["telugu"],
   weight: "400",
 });
 
 export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, isOpen, onClose }) {
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
-  const scrollPositionRef = useRef(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const imageContainerRef = useRef(null);
   
   // Check if running in React Native WebView
   const isReactNative = typeof window !== 'undefined' && window.ReactNativeWebView;
@@ -41,21 +28,56 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
       setCurrentImageIndex(currentIndex);
     }
   }, [currentIndex, isOpen]);
+
+  // Get all wallpapers array (use wallpapers if available, otherwise create array from single image)
+  // Transform wallpapers to have consistent structure
+  const allWallpapers = wallpapers.length > 0 
+    ? wallpapers.map(w => ({
+        src: w.src || w.image || w.image_url || w.url || "",
+        image: w.image || w.image_url || w.url || "",
+        image_url: w.image_url || w.image || w.url || "",
+        url: w.url || w.image || w.image_url || "",
+        title: w.title || w.name || w.alt || "",
+        name: w.name || w.title || w.alt || "",
+        alt: w.alt || w.title || w.name || "",
+        caption: w.caption || w.title || w.name || w.alt || ""
+      }))
+    : (image ? [{
+        src: image.src || image.image || image.image_url || image.url || "",
+        image: image.image || image.image_url || image.url || "",
+        image_url: image.image_url || image.image || image.url || "",
+        url: image.url || image.image || image.image_url || "",
+        title: image.title || image.name || image.alt || "",
+        name: image.name || image.title || image.alt || "",
+        alt: image.alt || image.title || image.name || "",
+        caption: image.caption || image.title || image.name || image.alt || ""
+      }] : []);
+  const totalImages = allWallpapers.length;
   
-  // Navigation functions
+  console.log("ImagePopup - allWallpapers:", allWallpapers);
+  console.log("ImagePopup - totalImages:", totalImages);
+
+  // Get current wallpaper
+  const currentWallpaper = allWallpapers[currentImageIndex] || image;
+  const imageUrl = currentWallpaper?.src || currentWallpaper?.image_file || currentWallpaper?.image || currentWallpaper?.image_url || currentWallpaper?.url || "";
+  const imageCaption = currentWallpaper?.caption || currentWallpaper?.title || currentWallpaper?.alt || currentWallpaper?.name || "";
+
+  // Navigation functions with smooth transitions
   const goToPrevious = () => {
-    if (wallpapers.length > 0 && currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1);
-    }
+    if (isTransitioning || currentImageIndex <= 0) return;
+    setIsTransitioning(true);
+    setCurrentImageIndex(currentImageIndex - 1);
+    setTimeout(() => setIsTransitioning(false), 300);
   };
 
   const goToNext = () => {
-    if (wallpapers.length > 0 && currentImageIndex < wallpapers.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
-    }
+    if (isTransitioning || currentImageIndex >= totalImages - 1) return;
+    setIsTransitioning(true);
+    setCurrentImageIndex(currentImageIndex + 1);
+    setTimeout(() => setIsTransitioning(false), 300);
   };
 
-  // Touch/swipe handlers
+  // Touch/swipe handlers for mobile
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -71,151 +93,14 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     const minSwipeDistance = 50;
 
     if (distance > minSwipeDistance) {
-      // Swipe left - next
       goToNext();
     } else if (distance < -minSwipeDistance) {
-      // Swipe right - previous
       goToPrevious();
     }
 
-    // Reset
     touchStartX.current = 0;
     touchEndX.current = 0;
   };
-
-  useEffect(() => {
-    // If in React Native WebView, send OPEN_WALLPAPER message instead of showing web popup
-    if (isOpen && isReactNative) {
-      console.log('ImagePopup: Detected React Native WebView');
-      console.log('ImagePopup: Wallpapers array length:', wallpapers.length);
-      console.log('ImagePopup: Current index:', currentIndex);
-      
-      if (wallpapers.length > 0) {
-        // Prepare wallpapers array with all images
-        const formattedWallpapers = wallpapers.map((w, index) => {
-          const imageUrl = w.image || w.image_url || w.file || w.thumb || w.url || "";
-          const largeImageUrl = imageUrl ? (getImageSize(imageUrl, "wallpaper", "large") || imageUrl) : imageUrl;
-          
-          // Convert relative URLs to absolute
-          let fullImageUrl = largeImageUrl;
-          if (largeImageUrl && largeImageUrl.startsWith('/')) {
-            fullImageUrl = window.location.origin + largeImageUrl;
-          } else if (largeImageUrl && !largeImageUrl.startsWith('http://') && !largeImageUrl.startsWith('https://')) {
-            fullImageUrl = new URL(largeImageUrl, window.location.href).href;
-          }
-          
-          return {
-            image: fullImageUrl,
-            image_url: fullImageUrl,
-            src: fullImageUrl,
-            url: fullImageUrl,
-            title: w.title || w.name || `Wallpaper ${index + 1}`,
-            name: w.title || w.name || `Wallpaper ${index + 1}`,
-            alt: w.title || w.name || `Wallpaper ${index + 1}`,
-          };
-        });
-        
-        console.log('ImagePopup: Sending OPEN_WALLPAPER message with', formattedWallpapers.length, 'wallpapers');
-        console.log('ImagePopup: Initial index:', currentIndex);
-        
-        // Send message to React Native to open wallpaper viewer
-        sendToNative({
-          type: "OPEN_WALLPAPER",
-          wallpapers: formattedWallpapers,
-          initialIndex: currentIndex,
-        });
-        
-        // Close the web popup immediately
-        onClose();
-        return;
-      } else {
-        console.warn('ImagePopup: No wallpapers array provided, falling back to single image');
-        // Fallback: send single image if wallpapers array is empty
-        if (image) {
-          const imageUrl = image.src || image.image || image.image_url || image.url || "";
-          let fullImageUrl = imageUrl;
-          if (imageUrl && imageUrl.startsWith('/')) {
-            fullImageUrl = window.location.origin + imageUrl;
-          } else if (imageUrl && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-            fullImageUrl = new URL(imageUrl, window.location.href).href;
-          }
-          
-          sendToNative({
-            type: "OPEN_WALLPAPER",
-            wallpapers: [{
-              image: fullImageUrl,
-              image_url: fullImageUrl,
-              src: fullImageUrl,
-              url: fullImageUrl,
-              title: image.title || image.alt || 'Wallpaper',
-              name: image.title || image.alt || 'Wallpaper',
-            }],
-            initialIndex: 0,
-          });
-          onClose();
-          return;
-        }
-      }
-    }
-    
-    // Prevent body scroll when popup is open and save scroll position (web only)
-    if (isOpen && !isReactNative) {
-      // Save current scroll position
-      scrollPositionRef.current = window.scrollY || document.documentElement.scrollTop;
-      // Prevent scrolling
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollPositionRef.current}px`;
-      document.body.style.width = "100%";
-    } else if (!isOpen && !isReactNative) {
-      // Restore scrolling and scroll position
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      // Restore scroll position
-      window.scrollTo(0, scrollPositionRef.current);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (!isReactNative) {
-        document.body.style.overflow = "";
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        if (scrollPositionRef.current) {
-          window.scrollTo(0, scrollPositionRef.current);
-        }
-      }
-    };
-  }, [isOpen, isReactNative, wallpapers, currentIndex, onClose]);
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
-
-  // Get current wallpaper from array or single image
-  const getCurrentWallpaper = () => {
-    if (wallpapers.length > 0 && currentImageIndex >= 0 && currentImageIndex < wallpapers.length) {
-      return wallpapers[currentImageIndex];
-    }
-    return image;
-  };
-
-  const currentWallpaper = getCurrentWallpaper();
-  
-  // Get image URL and caption (safe to call even if image is null)
-  // Support multiple formats: src (from WallpaperGrid), image_file, image, url
-  const imageUrl = currentWallpaper?.src || currentWallpaper?.image_file || currentWallpaper?.image || currentWallpaper?.image_url || currentWallpaper?.url || "";
-  const imageCaption = currentWallpaper?.caption || currentWallpaper?.title || currentWallpaper?.alt || "";
 
   // Keyboard navigation
   useEffect(() => {
@@ -226,62 +111,57 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         goToPrevious();
       } else if (e.key === 'ArrowRight') {
         goToNext();
+      } else if (e.key === 'Escape') {
+        onClose();
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentImageIndex, wallpapers.length]);
+  }, [isOpen, currentImageIndex, totalImages]);
 
-  // Reset error state when image changes
+  // Prevent body scroll when popup is open
   useEffect(() => {
-    if (imageUrl) {
-      setImageError(false);
-      console.log("ImagePopup - Image URL:", imageUrl);
-      console.log("ImagePopup - Image object:", image);
+    if (isOpen && !isReactNative) {
+      document.body.style.overflow = "hidden";
+    } else if (!isOpen && !isReactNative) {
+      document.body.style.overflow = "";
     }
-  }, [imageUrl, image]);
+    return () => {
+      if (!isReactNative) {
+        document.body.style.overflow = "";
+      }
+    };
+  }, [isOpen, isReactNative]);
 
-  // Don't render web popup if in React Native (handled by native component)
-  if (isReactNative) return null;
-  
-  if (!isOpen || !image) return null;
-
-  // Get download file name from environment variable
-  const downloadFileName = process.env.NEXT_PUBLIC_DOWNLOAD_FILE_SLUG || "gallery-image";
-
+  // Handle download
   const handleDownload = async () => {
     if (!imageUrl) return;
 
     setIsDownloading(true);
     try {
-      // Resolve relative URLs to absolute URLs
       let fullImageUrl = imageUrl;
       if (imageUrl.startsWith("/")) {
-        // Relative URL - resolve to current origin
         fullImageUrl = window.location.origin + imageUrl;
-
       } else if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-        // Relative URL without leading slash - resolve relative to current path
         fullImageUrl = new URL(imageUrl, window.location.href).href;
       }
 
-      // Fetch the image
       const response = await fetch(fullImageUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.statusText}`);
       }
       const blob = await response.blob();
 
-      // Get file extension from URL or default to jpg
       const urlParts = fullImageUrl.split(".");
       const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split("?")[0] : "jpg";
+      const fileName = imageCaption || "wallpaper";
+      const sanitizedFileName = fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${downloadFileName}.${extension}`;
+      link.download = `${sanitizedFileName}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -294,137 +174,211 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     }
   };
 
+  // Handle set wallpaper
   const handleSetWallpaper = () => {
-    // Convert relative URL to absolute URL for React Native
+    if (!imageUrl) return;
+    
     let fullImageUrl = imageUrl;
-    if (imageUrl && imageUrl.startsWith('/')) {
-      // Relative URL - convert to absolute
+    if (imageUrl.startsWith('/')) {
       fullImageUrl = window.location.origin + imageUrl;
-    } else if (imageUrl && !imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-      // Relative URL without leading slash
+    } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
       fullImageUrl = new URL(imageUrl, window.location.href).href;
     }
     
-    console.log('Setting wallpaper:', fullImageUrl);
+    const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';
     
-    // Send message to React Native WebView
-    sendToNative({
-      type: "SET_WALLPAPER",
-      imageUrl: fullImageUrl,
-      caption: imageCaption,
-    });
+    if (isReactNative) {
+      // Send to React Native
+      sendToNative({
+        type: "SET_WALLPAPER",
+        imageUrl: fullImageUrl,
+        caption: imageCaption,
+        title: wallpaperTitle,
+      });
+    } else {
+      // For web, show message
+      alert(`Wallpaper setting is only available in the mobile app. Image: ${wallpaperTitle}`);
+    }
   };
+
+  // Debug logging
+  useEffect(() => {
+    console.log("ImagePopup - Component render:", {
+      isOpen,
+      totalImages,
+      currentImageIndex,
+      wallpapersLength: wallpapers.length,
+      hasImage: !!image,
+      allWallpapersLength: allWallpapers.length,
+      isReactNative,
+      willRender: isOpen && totalImages > 0
+    });
+  }, [isOpen, totalImages, currentImageIndex, wallpapers.length, image, allWallpapers.length, isReactNative]);
+
+  // Don't render if not open or no images
+  if (!isOpen) {
+    console.log("ImagePopup - Not rendering: isOpen is false");
+    return null;
+  }
+  
+  if (totalImages === 0) {
+    console.warn("ImagePopup - Not rendering: totalImages is 0", {
+      wallpapersLength: wallpapers.length,
+      hasImage: !!image,
+      allWallpapers: allWallpapers
+    });
+    return null;
+  }
+  
+  console.log("ImagePopup - ✅ RENDERING POPUP", {
+    totalImages,
+    currentImageIndex,
+    isOpen,
+    imageUrl: imageUrl ? imageUrl.substring(0, 50) + "..." : "NO URL"
+  });
+
+  if (!imageUrl) {
+    console.error("ImagePopup - No image URL found for current wallpaper");
+  }
+
+  // Force render for debugging
+  if (isOpen) {
+    console.log("ImagePopup - About to render JSX, isOpen:", isOpen);
+  }
 
   return (
     <div
-      className={`${mallanna.className} fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in`}
+      className={`${mallanna.className} fixed inset-0 bg-black backdrop-blur-sm`}
+      style={{ 
+        zIndex: 99999, 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        display: isOpen ? 'flex' : 'none',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}
       onClick={onClose}
     >
-      <div
-        className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+      {/* Close Button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-30 w-12 h-12 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 backdrop-blur-sm"
+        aria-label="Close"
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-sm"
-          aria-label="Close"
-        >
-          <FaTimes size={18} />
-        </button>
+        <FaTimes size={20} />
+      </button>
 
-        {/* Image Container with Navigation */}
-        <div className="relative w-full flex-1 min-h-[60vh] max-h-[calc(90vh-200px)] bg-gradient-to-br from-saffron-100 to-indigo-100 flex items-center justify-center overflow-hidden">
-          {/* Previous Button */}
-          {wallpapers.length > 1 && currentImageIndex > 0 && (
-            <button
-              onClick={goToPrevious}
-              className="absolute left-4 z-20 w-12 h-12 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-sm"
-              aria-label="Previous wallpaper"
-            >
-              <FaChevronLeft size={20} />
-            </button>
-          )}
+      {/* Image Counter */}
+      {totalImages > 1 && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 px-4 py-2 bg-black/60 text-white rounded-full text-sm backdrop-blur-sm">
+          {currentImageIndex + 1} / {totalImages}
+        </div>
+      )}
 
-          {/* Image with Touch Support */}
-          <div 
-            className="w-full h-full flex items-center justify-center p-4"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+      {/* Main Image Container with Carousel */}
+      <div
+        ref={imageContainerRef}
+        className="relative w-full h-full flex items-center justify-center"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Previous Button */}
+        {totalImages > 1 && currentImageIndex > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToPrevious();
+            }}
+            className="absolute left-4 z-20 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 backdrop-blur-sm active:scale-95"
+            aria-label="Previous wallpaper"
           >
-            {imageUrl ? (
-              <img
-                src={getImageSize(imageUrl, "wallpapers", "medium").replace(".jpg",".webp")}
-                alt={imageCaption || "Wallpaper"}
-                className="max-w-full max-h-full w-auto h-auto object-contain mx-auto"
-                style={{ display: 'block' }}
-                onError={(e) => {
-                  console.error("Image load error:", imageUrl);
-                  // Try original URL if the replaced URL fails
-                  if (e.target.src !== imageUrl && imageUrl.includes("post_images/")) {
-                    e.target.src = imageUrl;
-                  } else {
-                    setImageError(true);
-                  }
-                }}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center text-indigo-500 gap-2">
-                <FaImage size={48} className="opacity-50" />
-                <p>Image not available</p>
-                <p className="text-xs text-indigo-400">URL: {imageUrl || "No URL provided"}</p>
-              </div>
-            )}
-          </div>
+            <FaChevronLeft size={24} />
+          </button>
+        )}
 
-          {/* Next Button */}
-          {wallpapers.length > 1 && currentImageIndex < wallpapers.length - 1 && (
-            <button
-              onClick={goToNext}
-              className="absolute right-4 z-20 w-12 h-12 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors backdrop-blur-sm"
-              aria-label="Next wallpaper"
-            >
-              <FaChevronRight size={20} />
-            </button>
-          )}
-
-          {/* Counter */}
-          {wallpapers.length > 1 && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 px-4 py-2 bg-black/50 text-white rounded-full text-sm backdrop-blur-sm">
-              {currentImageIndex + 1} / {wallpapers.length}
+        {/* Image with smooth transitions */}
+        <div className="relative w-full h-full flex items-center justify-center p-4">
+          {imageUrl ? (
+            <img
+              src={getImageSize(imageUrl, "wallpaper", "large") || imageUrl}
+              alt={imageCaption || "Wallpaper"}
+              className={`max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain transition-opacity duration-300 ${
+                isTransitioning ? 'opacity-50' : 'opacity-100'
+              }`}
+              style={{ display: 'block' }}
+              onError={(e) => {
+                console.error("Image load error:", imageUrl);
+                if (e.target.src !== imageUrl) {
+                  e.target.src = imageUrl;
+                }
+              }}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-white gap-4">
+              <FaImage size={64} className="opacity-50" />
+              <p className="text-lg opacity-75">Image not available</p>
             </div>
           )}
         </div>
 
+        {/* Next Button */}
+        {totalImages > 1 && currentImageIndex < totalImages - 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            className="absolute right-4 z-20 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all duration-200 backdrop-blur-sm active:scale-95"
+            aria-label="Next wallpaper"
+          >
+            <FaChevronRight size={24} />
+          </button>
+        )}
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/80 to-transparent p-4 pb-8">
         {/* Caption */}
         {imageCaption && (
-          <div className="px-6 py-3 bg-gradient-to-r from-indigo-50 to-saffron-50 border-t border-white/50">
-            <p className="text-sm text-indigo-700 text-center">{imageCaption}</p>
+          <div className="text-center mb-4">
+            <p className="text-white text-lg font-medium">{imageCaption}</p>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3 p-4 bg-white border-t border-gray-200">
+        <div className="flex gap-3 max-w-md mx-auto">
           <button
-            onClick={handleDownload}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
             disabled={isDownloading}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-indigo-700 active:scale-95 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-xl font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
           >
-            <FaDownload size={16} />
-            <span>{isDownloading ? "డౌన్లోడ్ అవుతుంది ..." : "డౌన్లోడ్ చేయి"}</span>
+            <FaDownload size={18} />
+            <span>{isDownloading ? "డౌన్లోడ్ అవుతుంది..." : "డౌన్లోడ్"}</span>
           </button>
 
           <button
-            onClick={handleSetWallpaper}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-saffron-500 to-saffron-600 text-white rounded-xl font-semibold hover:from-saffron-600 hover:to-saffron-700 active:scale-95 transition-all duration-200 shadow-md"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSetWallpaper();
+            }}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all duration-200 active:scale-95 shadow-lg"
           >
-            <FaImage size={16} />
-            <span>వాల్ పేపర్ సెట్ చేయి</span>
+            <FaImage size={18} />
+            <span>వాల్ పేపర్ సెట్</span>
           </button>
         </div>
       </div>
     </div>
   );
 }
-

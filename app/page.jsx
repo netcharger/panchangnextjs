@@ -12,6 +12,8 @@ import WallpaperGrid from "../components/WallpaperGrid";
 import NextJsSplashImageModal from "../components/NextJsSplashImageModal";
 import PopupModal from "../components/PopupModal"; // Added PopupModal import
 
+import getBaseURL    from "../lib/getBaseURL";
+
 import { getCurrentGreeting, getCurrentTimeInterval } from "../lib/greetings";
 import { Suravaram } from "next/font/google";
 
@@ -52,7 +54,7 @@ export default function Home() {
 
           // Fetch splash image logic
           if (!lastSplashShownTimestamp || (currentTime - parseInt(lastSplashShownTimestamp) > threeHoursInMillis)) {
-            const response = await fetch('http://http://ywkg444gow0k0sk4skkss0gc.65.108.213.103.sslip.io/api/mobile-settings/site-settings/splash1/');
+            const response = await fetch(`${getBaseURL()}/api/mobile-settings/site-settings/splash1/`);
             const data = await response.json();
             if (data.is_active && data.value && data.value.image_value) {
               setSplashImageUrl(data.value.image_value);
@@ -64,7 +66,7 @@ export default function Home() {
           // Fetch popup image logic
           const lastPopupShownTimestamp = localStorage.getItem('lastPopupShownTimestamp');
           if (!lastPopupShownTimestamp || (currentTime - parseInt(lastPopupShownTimestamp) > popupIntervalInMillis)) {
-            const popupResponse = await fetch('http://http://ywkg444gow0k0sk4skkss0gc.65.108.213.103.sslip.io/api/mobile-settings/site-settings/popup/');
+            const popupResponse = await fetch(`${getBaseURL()}/api/mobile-settings/site-settings/popup/`);
             const popupData = await popupResponse.json();
 
             if (popupData.is_active && popupData.value && popupData.value.image_value && popupData.value.url_value) {

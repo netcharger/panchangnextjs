@@ -12,6 +12,8 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleImageClick = (wallpaper, index) => {
+    console.log("WallpaperGrid - handleImageClick called:", { wallpaper, index, totalWallpapers: wallpapers.length });
+    
     // Get the original image URL from various possible fields
     const imageUrl = wallpaper.image || wallpaper.image_url || wallpaper.file || wallpaper.thumb || wallpaper.url || "";
 
@@ -21,23 +23,40 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
     console.log("WallpaperGrid - Clicked wallpaper:", wallpaper);
     console.log("WallpaperGrid - Image URL:", imageUrl);
     console.log("WallpaperGrid - Large Image URL:", largeImageUrl);
+    console.log("WallpaperGrid - Selected index:", index);
 
     if (!largeImageUrl) {
       console.error("No image URL found for wallpaper:", wallpaper);
       return;
     }
 
-    setSelectedImage({
+    const selectedImageData = {
       src: largeImageUrl,
       alt: wallpaper.title || wallpaper.name || "Wallpaper",
       title: wallpaper.title || wallpaper.name,
       // Also include original fields for compatibility
       image: imageUrl,
       image_url: imageUrl,
-      url: imageUrl
-    });
+      url: imageUrl,
+      name: wallpaper.name || wallpaper.title,
+      caption: wallpaper.caption || wallpaper.title || wallpaper.name
+    };
+    
+    console.log("WallpaperGrid - Setting selected image:", selectedImageData);
+    console.log("WallpaperGrid - Setting index:", index);
+    console.log("WallpaperGrid - Total wallpapers:", wallpapers.length);
+    
+    setSelectedImage(selectedImageData);
     setSelectedIndex(index);
     setIsPopupOpen(true);
+    
+    console.log("WallpaperGrid - ✅ Popup state set to open");
+    console.log("WallpaperGrid - State values:", { 
+      isPopupOpen: true, 
+      selectedIndex: index,
+      hasSelectedImage: !!selectedImageData,
+      selectedImageData
+    });
   };
 
   const handleDownload = async (imageUrl) => {
@@ -75,14 +94,14 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
           className="columns-2 gap-3"
           style={{ columnGap: '0.75rem' }}
         >
-          {wallpapers.map((w) => {
+          {wallpapers.map((w, index) => {
             const imageUrl = w.image || w.image_url || w.thumb || "/icons/placeholder.png";
             const thumbnailUrl = getImageSize(imageUrl, "thumb") || imageUrl;
 
             return (
               <div
-                key={w.id}
-                onClick={() => handleImageClick(w, wallpapers.indexOf(w))}
+                key={w.id || index}
+                onClick={() => handleImageClick(w, index)}
                 className="group relative w-full mb-3 break-inside-avoid rounded-xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 <div className="relative w-full">
@@ -131,15 +150,17 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
         </div>
 
         {/* Image Popup */}
-        {isPopupOpen && selectedImage && (
-          <ImagePopup
-            image={selectedImage}
-            wallpapers={wallpapers}
-            currentIndex={selectedIndex}
-            isOpen={isPopupOpen}
-            onClose={() => setIsPopupOpen(false)}
-          />
-        )}
+        <ImagePopup
+          image={selectedImage}
+          wallpapers={wallpapers}
+          currentIndex={selectedIndex}
+          isOpen={isPopupOpen}
+          onClose={() => {
+            console.log("WallpaperGrid - Closing popup");
+            setIsPopupOpen(false);
+            setSelectedImage(null);
+          }}
+        />
       </>
     );
   }
@@ -148,14 +169,14 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        {wallpapers.map((w) => {
+        {wallpapers.map((w, index) => {
           const imageUrl = w.image || w.image_url || w.thumb || "/icons/placeholder.png";
           const thumbnailUrl = getImageSize(imageUrl, "wallpaper", "thumb") || imageUrl;
 
             return (
             <div
-              key={w.id}
-              onClick={() => handleImageClick(w, wallpapers.indexOf(w))}
+              key={w.id || index}
+              onClick={() => handleImageClick(w, index)}
               className="group relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
             >
               <Image
@@ -195,13 +216,17 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
       </div>
 
       {/* Image Popup */}
-      {isPopupOpen && selectedImage && (
-        <ImagePopup
-          image={selectedImage}
-          isOpen={isPopupOpen}
-          onClose={() => setIsPopupOpen(false)}
-        />
-      )}
+      <ImagePopup
+        image={selectedImage}
+        wallpapers={wallpapers}
+        currentIndex={selectedIndex}
+        isOpen={isPopupOpen}
+        onClose={() => {
+          console.log("WallpaperGrid - Closing popup");
+          setIsPopupOpen(false);
+          setSelectedImage(null);
+        }}
+      />
     </>
   );
 }
