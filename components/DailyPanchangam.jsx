@@ -137,11 +137,52 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   // Extract data from sections
   const nationalCalendarSection = findSection(data.sections, "భారత జాతీయ క్యాలెండర్");
   const lunarMonthSection = findSection(data.sections, "చంద్ర మాస సమాచారం");
+  // Try different possible variations of the title
+  let traditionalPanchangamSection = findSection(data.sections, "సాంప్రదాయ పంచాంగం") ||
+                                   data.sections?.find(section =>
+                                     section.title?.includes("సాంప్రదాయ") &&
+                                     section.title?.includes("పంచాంగం")
+                                   );
+
+  // TEMPORARY: Force create the section if it doesn't exist (for testing)
+  if (!traditionalPanchangamSection) {
+    console.log('⚠️ Traditional Panchangam section not found, creating temporary test data');
+    traditionalPanchangamSection = {
+      title: "సాంప్రదాయ పంచాంగం",
+      items: [
+        {
+          label: "సారాంశం",
+          value: "శ్రీ విశ్వావసు నామ సంవత్సరం; దక్షిణాయనం; శిశిర ఋతువు; ఫాల్గుణం మాసం"
+        }
+      ]
+    };
+  }
   const sunMoonSection = findSection(data.sections, "సూర్య చంద్రోదయాలు");
   const panchangamSection = findSection(data.sections, "మూల పంచాంగం");
   const auspiciousSection = findSection(data.sections, "శుభ సమయాలు");
   const inauspiciousSection = findSection(data.sections, "అశుభ సమయాలు");
   const festivalsSection = findSection(data.sections, "పండుగలు");
+
+  // Debug logging
+  console.log('🔍 Data received:', data);
+  console.log('🔍 Data sections:', data?.sections);
+  if (data?.sections) {
+    console.log('🔍 All section titles:', data.sections.map(s => s.title));
+    console.log('🔍 Section details:', data.sections.map(s => ({ title: s.title, items: s.items?.length || 0 })));
+  }
+  console.log('🔍 Traditional Panchangam section:', traditionalPanchangamSection);
+  console.log('🔍 Traditional Panchangam items:', traditionalPanchangamSection?.items);
+  console.log('🔍 Traditional Panchangam summary:', findItem(traditionalPanchangamSection, "సారాంశం"));
+  console.log('🔍 Panchangam section (మూల పంచాంగం):', panchangamSection);
+  console.log('🔍 Tithulu item:', findItem(panchangamSection, "తిథులు"));
+
+  // Additional debugging for exact title matching
+  if (data?.sections) {
+    const exactMatch = data.sections.find(s => s.title === "సాంప్రదాయ పంచాంగం");
+    const partialMatch = data.sections.find(s => s.title && s.title.includes("సాంప్రదాయ"));
+    console.log('🔍 Exact title match:', exactMatch);
+    console.log('🔍 Partial title match:', partialMatch);
+  }
 
   // Get sunrise/sunset and moonrise/moonset
   const sunriseItem = findItem(sunMoonSection, "సూర్యోదయం");
@@ -174,7 +215,8 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
       isInauspicious: true
     }))
   ];
-
+  const summary = findItem(traditionalPanchangamSection, "సారాంశం").value
+  const summary_array = summary.split(';')
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Top Section - Date and General Information */}
@@ -212,42 +254,55 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
 
           {/* Hindu Calendar Details */}
           <div className="space-y-2 mt-4 pt-4 border-t border-gray-200">
-            {nationalCalendarSection && (
+            {traditionalPanchangamSection && (
               <>
-                {findItem(nationalCalendarSection, "సంవత్సరం") && (
+                {findItem(traditionalPanchangamSection, "సారాంశం") && (
                   <div className="text-sm">
-                    <span className="text-indigo-600 font-medium">
-                      {findItem(nationalCalendarSection, "సంవత్సరం").value} సంవత్సరం
-                    </span>
-                  </div>
-                )}
-                {findItem(nationalCalendarSection, "మాసం") && (
-                  <div className="text-sm">
-                    <span className="text-indigo-600 font-medium">
-                      {findItem(nationalCalendarSection, "మాసం").value} మాసం
-                    </span>
-                  </div>
-                )}
-                {findItem(nationalCalendarSection, "తేది") && (
-                  <div className="text-sm">
-                    <span className="text-indigo-600 font-medium">
-                      {findItem(nationalCalendarSection, "తేది").value} తేది
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
+
+                                        <div className="text-red-600 font-bold text-xl text-center mb-6 "> {summary_array[0]} </div>
+<div>{summary_array[1]}, {summary_array[2]}, {summary_array[3]},
+
             {lunarMonthSection && (
               <>
                 {findItem(lunarMonthSection, "పక్షం") && (
-                  <div className="text-sm">
-                    <span className="text-indigo-600 font-medium">
+
+                    <span className="text-red-600  text-center font-bold">
                       {findItem(lunarMonthSection, "పక్షం").value}
                     </span>
+
+                )}
+              </>
+            )}
+
+            {/* Tithulu (తిథులు) from Basic Panchangam */}
+            {panchangamSection && findItem(panchangamSection, "తిథులు") && (
+              <div className="mt-4">
+                <div className="text-sm  text-red-700 mb-2 font-bold">తిథులు</div>
+                <div className="space-y-2">
+                  {findItem(panchangamSection, "తిథులు").events?.map((event, index) => (
+                    <div key={index} className="bg-white/50 rounded-lg p-3 border border-indigo-100">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <span className="text-indigo-600 font-medium">{event.name}</span>
+
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {event.start}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+</div>
                   </div>
                 )}
               </>
             )}
+
+
           </div>
 
           {/* WhatsApp share button */}

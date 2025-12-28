@@ -75,27 +75,17 @@ export default function Header() {
               </button>
               <Link href="/" onClick={closeMenu} className="flex items-center">
                 <div className="w-8 h-8 rounded-sm flex items-center justify-center">
-                  <span className="text-saffron-700 text-xs font-bold"><img src="logo-icon.png" alt="Logo" className="w-full h-full object-contain" /> </span>
+                  <span ><img src="/logo-icon.png" alt="Logo" className="w-full h-full object-contain" /> </span>
 
                 </div>
-                <h2 className={`${dhurjati.className} text-saffron-700 ml-2 text-2xl font-bold`}>
+                <h2 className={`${dhurjati.className} text-white ml-2 text-2xl`}>
                 స్వస్తిక్ పంచాంగం
                 </h2>
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                className="text-white p-2 active:opacity-70 transition-opacity duration-200 flex items-center justify-center"
-                aria-label="Themes"
-              >
-                <FaPalette size={20} />
-              </button>
-              <button
-                className="text-white p-2 active:opacity-70 transition-opacity duration-200 flex items-center justify-center"
-                aria-label="Search"
-              >
-                <FaSearch size={20} />
-              </button>
+
+
               <button
                 className="text-white p-2 active:opacity-70 transition-opacity duration-200 flex items-center justify-center relative"
                 aria-label="Notifications"
@@ -124,13 +114,13 @@ export default function Header() {
           <div className="p-6 border-b border-saffron-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-saffron-400 to-saffron-500 flex items-center justify-center shadow-lg">
-                <span className="text-white text-2xl font-bold">प</span>
+                <span className="text-white text-2xl font-bold"><img src="logo-icon2.png" alt="Logo" className="w-full h-full object-contain" /> </span>
               </div>
               <div>
-                <h2 className={`${dhurjati.className} text-xl font-bold text-indigo-700`}>
+                <h2 className={`${dhurjati.className} text-2xl font-bold text-indigo-700`}>
                 స్వస్తిక్
                 </h2>
-                <p className={`${dhurjati.className} text-xs text-indigo-500`}>పంచాంగం</p>
+                <p className={`${dhurjati.className} text-xl text-indigo-500`}>పంచాంగం</p>
               </div>
             </div>
           </div>
