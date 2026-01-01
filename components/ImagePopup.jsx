@@ -147,29 +147,45 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         fullImageUrl = new URL(imageUrl, window.location.href).href;
       }
 
-      const response = await fetch(fullImageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';
+
+      if (isReactNative) {
+        // Send to React Native for download
+        sendToNative({
+          type: "DOWNLOAD_WALLPAPER",
+          imageUrl: fullImageUrl,
+          caption: imageCaption,
+          title: wallpaperTitle,
+        });
+        setIsDownloading(false);
+      } else {
+        // For web browser, use browser download
+        const response = await fetch(fullImageUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+
+        const urlParts = fullImageUrl.split(".");
+        const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split("?")[0] : "jpg";
+        const fileName = imageCaption || "wallpaper";
+        const sanitizedFileName = fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${sanitizedFileName}.${extension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        setIsDownloading(false);
       }
-      const blob = await response.blob();
-
-      const urlParts = fullImageUrl.split(".");
-      const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split("?")[0] : "jpg";
-      const fileName = imageCaption || "wallpaper";
-      const sanitizedFileName = fileName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${sanitizedFileName}.${extension}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading image:", error);
-      alert("Failed to download image. Please try again.");
-    } finally {
+      if (!isReactNative) {
+        alert("Failed to download image. Please try again.");
+      }
       setIsDownloading(false);
     }
   };

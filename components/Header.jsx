@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
 import { Dhurjati } from "next/font/google";
+import {  WEB_APP_URL } from '../lib/constants';
 
 const dhurjati = Dhurjati({
   subsets: ["telugu"],
@@ -173,11 +174,7 @@ export default function Header() {
             </div>
           </nav>
 
-          <div className="p-4 border-t border-saffron-200">
-            <div className="text-center">
-              <p className="text-xs text-indigo-500">Version 1.0.0</p>
-            </div>
-          </div>
+
         </div>
       </div>
     </>

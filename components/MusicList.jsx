@@ -47,12 +47,12 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
   // Helper function to get full audio URL
   const getFullAudioUrl = (audioUrl) => {
     if (!audioUrl) return null;
-    
+
     // If already a full URL (starts with http:// or https://), return as is
     if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
       return audioUrl;
     }
-    
+
     // If it's a relative URL, prepend the base URL
     const baseURL = getBaseURL();
     // Remove leading slash if present to avoid double slashes
@@ -71,31 +71,34 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
   }, []);
 
   const handlePlay = (track) => {
+    console.log("⏯️ handlePlay called for track:", track.id, "Current playingId:", playingId);
+
     const rawAudioUrl = track.mp3_file || track.audio_file || track.url;
     const audioUrl = getFullAudioUrl(rawAudioUrl);
-    
+
     if (!audioUrl) {
-      console.error("No audio URL found for track:", track);
-      console.error("Track data:", track);
+      console.error("❌ handlePlay: No audio URL found for track:", track);
+      console.error("❌ handlePlay: Track data:", track);
       return;
     }
 
-    console.log("Playing audio from URL:", audioUrl);
-
     // If same track is clicked, pause it
     if (playingId === track.id) {
+      console.log("⏸️ handlePlay: Same track clicked, attempting to pause.");
       setPlayingId(null);
       setPlayingAudioUrl(null);
-      
+
       // Pause and cleanup browser audio
       if (audioRef.current) {
+        console.log("⏸️ handlePlay: Pausing browser audio.");
         audioRef.current.pause();
         audioRef.current.src = '';
         audioRef.current.load();
         audioRef.current = null;
       }
-      
+
       // Send pause message to native app if in WebView
+      console.log("📤 handlePlay: Dispatching PAUSE_AUDIO to native app for track:", track.id);
       sendToNative({
         type: "PAUSE_AUDIO",
         trackId: track.id,
@@ -119,7 +122,7 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
     // Play the new track
     setPlayingId(track.id);
     setPlayingAudioUrl(audioUrl);
-    
+
     // Send play message to native app if in WebView
     sendToNative({
       type: "PLAY_AUDIO",
@@ -132,7 +135,7 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
     if (typeof window !== 'undefined' && !window.ReactNativeWebView) {
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
-      
+
       // Set up audio event handlers
       audio.onended = () => {
         console.log("Audio ended");
@@ -153,7 +156,7 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
         audioRef.current = null;
         }
         if (audio.error) {
-          const errorMsg = audio.error.code === 4 ? 
+          const errorMsg = audio.error.code === 4 ?
             "Media file not found. Please check if the file exists on the server." :
             `Failed to play audio: ${audio.error.message || 'Unknown error'}`;
           console.error(errorMsg);
@@ -179,7 +182,7 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
       audio.onpause = () => {
         console.log("Audio paused");
       };
-      
+
       // Play audio
       const playAudio = async () => {
         try {
@@ -194,7 +197,7 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
           }
         }
       };
-      
+
       playAudio();
     }
   };
@@ -221,10 +224,10 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
         const status = getTrackStatus(t.id);
         const isDownloaded = status.isDownloaded;
         const isDownloading = status.isDownloading;
-        
+
         return (
-        <div 
-          key={t.id || idx} 
+        <div
+          key={t.id || idx}
           className="glass rounded-xl p-4 shadow-soft border border-white/50 hover:shadow-md transition-all duration-200 active:scale-98 group"
         >
           <div className="flex items-center justify-between gap-3">
@@ -283,6 +286,22 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
                 title={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} />}
+              </button>
+              {/* NEW DEBUG PAUSE BUTTON */}
+              <button
+                onClick={() => {
+                  console.log("⏯️ DEBUG PAUSE BUTTON CLICKED for track:", t.id);
+                  sendToNative({
+                    type: "PAUSE_AUDIO",
+                    trackId: t.id,
+                  });
+                  console.log("📤 DEBUG PAUSE BUTTON: Dispatched PAUSE_AUDIO to native app for track:", t.id);
+                }}
+                disabled={!isPlaying || isDownloading} // Only enable if currently playing
+                className={`p-2 rounded-lg shadow-md transition-all duration-200 ${isPlaying && !isDownloading ? "bg-gray-700 text-white hover:shadow-lg" : "bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed"}`}
+                title="Force Pause (Debug)"
+              >
+                <FaPause size={14} /> (Debug)
               </button>
             </div>
           </div>

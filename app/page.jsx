@@ -130,7 +130,7 @@ export default function Home() {
   const [timeInterval, setTimeInterval] = useState({ label: "ఉదయం సమయం", key: "morning" });
   const [timeStr, setTimeStr] = useState("");
 
-  const [today, setToday] = useState(new Date());
+  const [today, setToday] = useState(null);
   const [dayName, setDayName] = useState("");
   const [monthName, setMonthName] = useState("");
 
@@ -225,24 +225,26 @@ export default function Home() {
       )}
 
       {/* Image Carousel - At the top */}
-      {carouselLoading ? (
-        <div className="glass   p-8 mb-6 shadow-soft border border-white/50 flex items-center justify-center min-h-[200px]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
-            <p className="text-sm text-indigo-500">Loading carousel...</p>
+      <div className="mb-6">
+        {carouselLoading ? (
+          <div className="glass p-8 shadow-soft border border-white/50 flex items-center justify-center min-h-[200px]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
+              <p className="text-sm text-indigo-500">Loading carousel...</p>
+            </div>
           </div>
-        </div>
-      ) : carouselError ? (
-        <div className="glass rounded-2xl p-4 mb-6 shadow-soft border border-red-200 bg-red-50">
-          <p className="text-sm text-red-600">Error loading carousel: {carouselError.message}</p>
-        </div>
-      ) : carouselImages.length > 0 ? (
-        <ImageCarousel images={carouselImages} autoPlay={true} interval={5000} />
-      ) : (
-        <div className="glass rounded-2xl p-4 mb-6 shadow-soft border border-yellow-200 bg-yellow-50">
-          <p className="text-sm text-yellow-600">No carousel images found</p>
-        </div>
-      )}
+        ) : carouselError ? (
+          <div className="glass rounded-2xl p-4 shadow-soft border border-red-200 bg-red-50">
+            <p className="text-sm text-red-600">Error loading carousel: {carouselError.message}</p>
+          </div>
+        ) : carouselImages.length > 0 ? (
+          <ImageCarousel images={carouselImages} autoPlay={true} interval={5000} />
+        ) : (
+          <div className="glass rounded-2xl p-4 shadow-soft border border-yellow-200 bg-yellow-50">
+            <p className="text-sm text-yellow-600">No carousel images found</p>
+          </div>
+        )}
+      </div>
 
       {/* Hero Section - Today's Date */}
       <div className={`${notoSansTelugu.className} glass rounded-3xl p-8 mb-6 shadow-soft border border-white/50 relative overflow-hidden`}>
@@ -269,9 +271,9 @@ export default function Home() {
           <div className="bg-gradient-to-br from-saffron-400 to-saffron-500 rounded-2xl p-6 shadow-lg mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm font-medium mb-1">{mounted ? teluguDay : ""}</p>
+                <p className="text-white/80 text-sm font-medium mb-1">{mounted && teluguDay ? teluguDay : "\u00A0"}</p>
                 <h1 className="text-3xl font-bold text-white mb-1">{mounted && today ? today.getDate() : "--"}</h1>
-                <p className="text-white/90 text-sm">{mounted ? `${teluguMonth} ${today ? today.getFullYear() : ""}` : ""}</p>
+                <p className="text-white/90 text-sm">{mounted && teluguMonth && today ? `${teluguMonth} ${today.getFullYear()}` : "\u00A0"}</p>
               </div>
               <div className="text-right">
                 <div className="flex items-center gap-2 mb-2">
@@ -335,58 +337,60 @@ export default function Home() {
       </div>
 
       {/* Categories Section */}
-      {categoriesLoading ? (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-indigo-700 mb-4 px-1">Categories</h3>
-          <div className="glass rounded-2xl p-8 shadow-soft flex items-center justify-center min-h-[200px]">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
-              <p className="text-sm text-indigo-500">Loading categories...</p>
+      <div className="mb-6" suppressHydrationWarning>
+        {categoriesLoading ? (
+          <>
+            <h3 className="text-lg font-bold text-indigo-700 mb-4 px-1">Categories</h3>
+            <div className="glass rounded-2xl p-8 shadow-soft flex items-center justify-center min-h-[200px]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
+                <p className="text-sm text-indigo-500">Loading categories...</p>
+              </div>
             </div>
-          </div>
-        </div>
-      ) : mounted && categories.length > 0 ? (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h3 className="text-lg font-bold text-indigo-700">Categories</h3>
-            <Link
-              href="/categories"
-              className="text-sm text-saffron-600 hover:text-saffron-700 font-medium"
-            >
-              View All
-            </Link>
-          </div>
-          <CategoriesGrid categories={categories} limit={5} />
-        </div>
-      ) : null}
+          </>
+        ) : mounted && categories.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h3 className="text-lg font-bold text-indigo-700">Categories</h3>
+              <Link
+                href="/categories"
+                className="text-sm text-saffron-600 hover:text-saffron-700 font-medium"
+              >
+                View All
+              </Link>
+            </div>
+            <CategoriesGrid categories={categories} limit={5} />
+          </>
+        ) : null}
+      </div>
 
       {/* Latest Wallpapers Section */}
-      {wallpapersLoading ? (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold text-indigo-700 mb-4 px-1">Latest Wallpapers</h3>
-          <div className="glass rounded-2xl p-8 shadow-soft flex items-center justify-center min-h-[200px]">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
-              <p className="text-sm text-indigo-500">Loading wallpapers...</p>
+      <div className="mb-6" suppressHydrationWarning>
+        {wallpapersLoading ? (
+          <>
+            <h3 className="text-lg font-bold text-indigo-700 mb-4 px-1">Latest Wallpapers</h3>
+            <div className="glass rounded-2xl p-8 shadow-soft flex items-center justify-center min-h-[200px]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-saffron-200 border-t-saffron-500 rounded-full animate-spin"></div>
+                <p className="text-sm text-indigo-500">Loading wallpapers...</p>
+              </div>
             </div>
-          </div>
-        </div>
-      ) : mounted && latestWallpapers.length > 0 ? (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h3 className="text-lg font-bold text-indigo-700">Latest Wallpapers</h3>
-            <Link
-              href="/wallpapers"
-              className="text-sm text-saffron-600 hover:text-saffron-700 font-medium"
-            >
-              View All
-            </Link>
-          </div>
-          <WallpaperGrid wallpapers={latestWallpapers} masonry={true} />
-
-
-        </div>
-      ) : null}
+          </>
+        ) : mounted && latestWallpapers.length > 0 ? (
+          <>
+            <div className="flex items-center justify-between mb-4 px-1">
+              <h3 className="text-lg font-bold text-indigo-700">Latest Wallpapers</h3>
+              <Link
+                href="/wallpapers"
+                className="text-sm text-saffron-600 hover:text-saffron-700 font-medium"
+              >
+                View All
+              </Link>
+            </div>
+            <WallpaperGrid wallpapers={latestWallpapers} masonry={true} />
+          </>
+        ) : null}
+      </div>
 
       {/* Today's Highlights */}
       <div className="glass rounded-2xl p-6 shadow-soft border border-white/50">
@@ -415,4 +419,3 @@ export default function Home() {
     </div>
   );
 }
-

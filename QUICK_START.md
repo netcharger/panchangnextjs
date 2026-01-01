@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
 
 **Terminal 1 - Next.js App:**
 ```bash
-cd panchangweb
+cd nextjsweb
 npm run dev
 ```
 

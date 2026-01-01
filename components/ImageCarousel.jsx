@@ -50,8 +50,21 @@ export default function ImageCarousel({ images = [], autoPlay = true, interval =
     setCurrentIndex(index);
   };
 
-  if (!mounted || !images || images.length === 0) {
+  // Always render the wrapper to prevent hydration errors
+  // Only show content when mounted and images are available
+  if (!images || images.length === 0) {
     return null;
+  }
+
+  if (!mounted) {
+    // Render a placeholder during SSR to match client structure
+    return (
+      <div className="relative rounded-xl w-full overflow-hidden shadow-lg mb-6">
+        <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-saffron-100 to-indigo-100">
+          {/* Placeholder for SSR */}
+        </div>
+      </div>
+    );
   }
 
   // Get image URL

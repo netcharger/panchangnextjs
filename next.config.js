@@ -13,6 +13,19 @@ const nextConfig = {
       { protocol: "https", hostname: "**" }
     ],
   },
+
+  webpack: (config, { isServer }) => {
+    // Handle audio files (mp3, wav, etc.)
+    config.module.rules.push({
+      test: /\.(mp3|wav|ogg|m4a)$/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'static/media/[name].[hash][ext]',
+      },
+    });
+
+    return config;
+  },
 };
 
 module.exports = nextConfig;
