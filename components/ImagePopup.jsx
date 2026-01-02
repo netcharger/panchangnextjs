@@ -62,6 +62,10 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
   const imageUrl = currentWallpaper?.src || currentWallpaper?.image_file || currentWallpaper?.image || currentWallpaper?.image_url || currentWallpaper?.url || "";
   const imageCaption = currentWallpaper?.caption || currentWallpaper?.title || currentWallpaper?.alt || currentWallpaper?.name || "";
 
+  // Derive thumb and medium URLs if available
+  const thumbImageUrl = currentWallpaper?.thumb || getImageSize(imageUrl, "wallpapers", "thumb") || imageUrl;
+  const mediumImageUrl = currentWallpaper?.medium || getImageSize(imageUrl, "wallpapers", "medium") || imageUrl;
+
   // Navigation functions with smooth transitions
   const goToPrevious = () => {
     if (isTransitioning || currentImageIndex <= 0) return;
@@ -324,16 +328,16 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         <div className="relative w-full h-full flex items-center justify-center p-4">
           {imageUrl ? (
             <img
-              src={getImageSize(imageUrl, "wallpaper", "large") || imageUrl}
+              src={thumbImageUrl}
               alt={imageCaption || "Wallpaper"}
               className={`max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain transition-opacity duration-300 ${
                 isTransitioning ? 'opacity-50' : 'opacity-100'
               }`}
               style={{ display: 'block' }}
               onError={(e) => {
-                console.error("Image load error:", imageUrl);
+                console.error("Image load error:", thumbImageUrl);
                 if (e.target.src !== imageUrl) {
-                  e.target.src = imageUrl;
+                  e.target.src = imageUrl; // Fallback to full size if thumb fails
                 }
               }}
             />

@@ -27,9 +27,29 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
           }));
         }
       }
+      
+      // Handle pause response
+      if (payload.type === "PAUSE_AUDIO_RESPONSE") {
+        console.log("⏸️ PAUSE_AUDIO_RESPONSE received:", payload);
+        if (payload.success) {
+          // Update UI to show paused state
+          if (payload.trackId && String(payload.trackId) === String(playingId)) {
+            setPlayingId(null);
+            setPlayingAudioUrl(null);
+          }
+        }
+      }
+      
+      // Handle play response
+      if (payload.type === "PLAY_AUDIO_RESPONSE") {
+        console.log("▶️ PLAY_AUDIO_RESPONSE received:", payload);
+        if (payload.success && payload.trackId) {
+          // UI state is already updated in handlePlay, but we can sync here if needed
+        }
+      }
     });
     return cleanup;
-  }, []);
+  }, [playingId]);
 
   const updateTrackStatus = (trackId, changes) => {
     const key = String(trackId);
@@ -98,11 +118,12 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
       }
 
       // Send pause message to native app if in WebView
-      console.log("📤 handlePlay: Dispatching PAUSE_AUDIO to native app for track:", track.id);
-      sendToNative({
+      const pausePayload = {
         type: "PAUSE_AUDIO",
         trackId: track.id,
-      });
+      };
+      console.log("📤 handlePlay: Dispatching PAUSE_AUDIO to native app:", pausePayload);
+      sendToNative(pausePayload);
       return;
     }
 
@@ -245,63 +266,47 @@ export default function MusicList({ tracks = [], onSetAlarm }) {
             <div className="flex items-center gap-2 flex-shrink-0">
               {isDownloading ? (
                 <button
-                  className="p-2 rounded-lg bg-gray-200 text-gray-600 shadow-md"
+                  className="p-3 rounded-lg bg-gray-200 text-gray-600 shadow-md"
                   title="Downloading..."
                   disabled
                 >
-                  <FaSpinner className="animate-spin" size={14} />
+                  <FaSpinner className="animate-spin" size={20} />
                 </button>
               ) : isDownloaded ? (
-                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-500 shadow-inner">
-                  <FaCheck size={14} />
+                <div className="p-3 rounded-lg bg-emerald-50 text-emerald-500 shadow-inner">
+                  <FaCheck size={20} />
                 </div>
               ) : (
                 <button
                   onClick={() => handleDownloadPress(t, audioUrl)}
                   disabled={!audioUrl}
-                  className={`p-2 rounded-lg bg-gradient-to-r ${audioUrl ? "from-stone-400 to-stone-500 hover:shadow-lg" : "from-stone-300 to-stone-400 opacity-50 cursor-not-allowed"} text-white shadow-md active:scale-95 transition-all duration-200`}
+                  className={`p-3 rounded-lg bg-gradient-to-r ${audioUrl ? "from-stone-400 to-stone-500 hover:shadow-lg" : "from-stone-300 to-stone-400 opacity-50 cursor-not-allowed"} text-white shadow-md active:scale-95 transition-all duration-200`}
                   title="Download audio"
                 >
-                  <FaDownload size={14} />
+                  <FaDownload size={20} />
                 </button>
               )}
               <button
                 onClick={() => isDownloaded && onSetAlarm?.(t)}
                 disabled={!isDownloaded}
-                className={`p-2 rounded-lg shadow-md transition-all duration-200 ${
+                className={`p-3 rounded-lg shadow-md transition-all duration-200 ${
                   isDownloaded ? "bg-gradient-to-r from-saffron-400 to-saffron-500 text-white hover:shadow-glow" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
                 title={isDownloaded ? "Set as Alarm" : "Download first to enable alarm"}
               >
-                <FaBell size={14} />
+                <FaBell size={20} />
               </button>
               <button
                 onClick={() => handlePlay(t)}
                 disabled={!audioUrl || isDownloading}
-                className={`p-2 rounded-lg text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 ${
+                className={`p-3 rounded-lg text-white shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 ${
                   isPlaying
                     ? "bg-gradient-to-r from-red-400 to-red-500"
                     : "bg-gradient-to-r from-indigo-400 to-indigo-500"
                 } ${(!audioUrl || isDownloading) ? "opacity-50 cursor-not-allowed" : ""}`}
                 title={isPlaying ? "Pause" : "Play"}
               >
-                {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} />}
-              </button>
-              {/* NEW DEBUG PAUSE BUTTON */}
-              <button
-                onClick={() => {
-                  console.log("⏯️ DEBUG PAUSE BUTTON CLICKED for track:", t.id);
-                  sendToNative({
-                    type: "PAUSE_AUDIO",
-                    trackId: t.id,
-                  });
-                  console.log("📤 DEBUG PAUSE BUTTON: Dispatched PAUSE_AUDIO to native app for track:", t.id);
-                }}
-                disabled={!isPlaying || isDownloading} // Only enable if currently playing
-                className={`p-2 rounded-lg shadow-md transition-all duration-200 ${isPlaying && !isDownloading ? "bg-gray-700 text-white hover:shadow-lg" : "bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed"}`}
-                title="Force Pause (Debug)"
-              >
-                <FaPause size={14} /> (Debug)
+                {isPlaying ? <FaPause size={24} /> : <FaPlay size={24} />}
               </button>
             </div>
           </div>
