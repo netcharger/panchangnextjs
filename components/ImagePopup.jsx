@@ -32,16 +32,22 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
   // Get all wallpapers array (use wallpapers if available, otherwise create array from single image)
   // Transform wallpapers to have consistent structure
   const allWallpapers = wallpapers.length > 0 
-    ? wallpapers.map(w => ({
-        src: w.src || w.image || w.image_url || w.url || "",
-        image: w.image || w.image_url || w.url || "",
-        image_url: w.image_url || w.image || w.url || "",
-        url: w.url || w.image || w.image_url || "",
-        title: w.title || w.name || w.alt || "",
-        name: w.name || w.title || w.alt || "",
-        alt: w.alt || w.title || w.name || "",
-        caption: w.caption || w.title || w.name || w.alt || ""
-      }))
+    ? wallpapers.map(w => {
+        const originalUrl = w.src || w.image || w.image_url || w.url || "";
+        return {
+          ...w,
+          src: originalUrl,
+          image: originalUrl,
+          image_url: originalUrl,
+          url: originalUrl,
+          title: w.title || w.name || w.alt || "",
+          name: w.name || w.title || w.alt || "",
+          alt: w.alt || w.title || w.name || "",
+          caption: w.caption || w.title || w.name || w.alt || "",
+          thumb: w.thumb || getImageSize(originalUrl, "wallpapers", "thumb") || "",
+          medium: w.medium || getImageSize(originalUrl, "wallpapers", "medium") || "",
+        };
+      })
     : (image ? [{
         src: image.src || image.image || image.image_url || image.url || "",
         image: image.image || image.image_url || image.url || "",
@@ -50,7 +56,9 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         title: image.title || image.name || image.alt || "",
         name: image.name || image.title || image.alt || "",
         alt: image.alt || image.title || image.name || "",
-        caption: image.caption || image.title || image.name || image.alt || ""
+        caption: image.caption || image.title || image.name || image.alt || "",
+        thumb: image.thumb || getImageSize(image.src || image.image || image.image_url || image.url, "wallpapers", "thumb") || "",
+        medium: image.medium || getImageSize(image.src || image.image || image.image_url || image.url, "wallpapers", "medium") || "",
       }] : []);
   const totalImages = allWallpapers.length;
   
