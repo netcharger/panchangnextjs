@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FaSun, FaMoon, FaChevronLeft, FaChevronRight, FaWhatsapp, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useState, useEffect, useRef } from "react";
+import { FaSun, FaMoon, FaChevronLeft, FaChevronRight, FaWhatsapp, FaChevronDown, FaChevronUp, FaInfoCircle } from "react-icons/fa";
+import html2canvas from "html2canvas";
 import TimeIndicator from "./TimeIndicator";
 import CountdownTimer from "./CountdownTimer";
 import DayProgressBar from "./DayProgressBar";
+import { getFixedTimingsForDay } from "../lib/inauspiciousTimings";
+import { sendToNative } from "../lib/webviewBridge";
+import DailyPanchangamShare from "./DailyPanchangamShare";
 
 // Telugu day names mapping
 const teluguDays = {
@@ -54,7 +58,7 @@ const formatEventTime = (event) => {
   const endMatch = endTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/);
 
   if (startMatch && endMatch) {
-    return `${startMatch[1]} - ${endMatch[1]}`;
+    return `${startMatch[1]} నుండి ${endMatch[1]}`;
   }
   return startTime;
 };
@@ -81,16 +85,145 @@ const detectEventType = (label) => {
   const labelLower = label.toLowerCase();
   if (labelLower.includes('రాహు') || labelLower.includes('rahu')) return 'rahu';
   if (labelLower.includes('యమ') || labelLower.includes('yama')) return 'yama';
-  if (labelLower.includes('గులిక') || labelLower.includes('gulika')) return 'gulika';
+  if (labelLower.includes('గులిక') || labelLower.includes('గుళిక') || labelLower.includes('gulika')) return 'gulika';
   if (labelLower.includes('దుర్ముహూర్త') || labelLower.includes('durmuhurtham')) return 'durmuhurtham';
+  if (labelLower.includes('వర్జ్యం') || labelLower.includes('vargyam')) return 'vargyam';
+  if (labelLower.includes('అభిజిత్') || labelLower.includes('abhijit')) return 'abhijit';
   if (labelLower.includes('అమృత') || labelLower.includes('amrit')) return 'amrit';
+  if (labelLower.includes('బ్రహ్మ') || labelLower.includes('brahma')) return 'brahma';
+  if (labelLower.includes('విజయ') || labelLower.includes('vijaya')) return 'vijaya';
+  if (labelLower.includes('గోదూలి') || labelLower.includes('godhuli')) return 'godhuli';
+  if (labelLower.includes('ప్రాత') || labelLower.includes('సంధ్య') || labelLower.includes('prata')) return 'sandhya';
+  if (labelLower.includes('నిశీత') || labelLower.includes('nishita')) return 'nishita';
   if (labelLower.includes('ముహూర్త') || labelLower.includes('muhurtham')) return 'muhurtham';
   return 'muhurtham'; // Default to good muhurtham
 };
 
+
 export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) {
   const [showAllAuspicious, setShowAllAuspicious] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [selectedTimingInfo, setSelectedTimingInfo] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const contentRef = useRef(null);
+  const shareRef = useRef(null); // Ref for the hidden share card
+
+  const handleShare = async () => {
+    if (!shareRef.current || isSharing) return; // Use shareRef instead
+    
+    try {
+      setIsSharing(true);
+      
+      // Small delay to ensure any UI updates are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(shareRef.current, { // Capture shareRef
+        scale: 3, // Higher quality (3x resolution)
+        useCORS: true, // Handle cross-origin images
+        logging: false,
+        backgroundColor: '#ffffff', // White background for share card
+        // windowWidth removed to allow full responsive width capture
+      });
+
+      const base64Image = canvas.toDataURL('image/png');
+      
+      // Remove data:image/png;base64, prefix
+      const base64Data = base64Image.split(',')[1];
+
+      sendToNative({ 
+        type: 'SHARE_IMAGE', 
+        payload: { base64: base64Data } 
+      });
+
+    } catch (error) {
+      console.error('Error generating screenshot:', error);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  // Timing information mapping (Auspicious, Inauspicious and general)
+  const timingDetailMapping = {
+    rahu: {
+      title: "రాహుకాలం",
+      effects: "ఆటంకాలు, ఆకస్మిక నష్టాలు సంభవించే అవకాశం ఉంటుంది. ఇది ఏ పనికైనా అశుభమైన కాలంగా పరిగణించబడుతుంది.",
+      advice: "కొత్త ప్రయాణాలు, ముఖ్యమైన ఒప్పందాలు, మరియు కొత్త పనుల ప్రారంభం నివారించాలి.",
+      type: "bad"
+    },
+    yama: {
+      title: "యమగండం",
+      effects: "పనులలో అపజయం లేదా పనుల నాణ్యత దెబ్బతినే అవకాశం ఉంటుంది. కార్యక్షుద్రతకు ఇది హానికరం.",
+      advice: "శుభకార్యాలు, శుభప్రయాణాలు, మరియు సాహస కృత్యాలను నివారించాలి.",
+      type: "bad"
+    },
+    gulika: {
+      title: "గులిక కాలం",
+      effects: "ఈ సమయంలో చేసే పనులు చాలా కాలం నిలిచిపోయే లేదా పునరావృతం అయ్యే అవకాశం ఉంటుంది. దీనిని శని పుత్రుడిగా కూడా పేర్కొంటారు.",
+      advice: "అప్పులు ఇవ్వడం, అంత్యక్రియలు, మరియు ముఖ్యమైన శుభకార్యాల ప్రారంభం నివారించడం మంచిది.",
+      type: "bad"
+    },
+    durmuhurtham: {
+      title: "దుర్ముహూర్తం",
+      effects: "అపశకునాలు మరియు అడ్డంకులు కలిగే అవకాశం ఉండే సమయం.",
+      advice: "ముఖ్యమైన శుభకార్యాలు, ప్రయాణాలు నివారించాలి.",
+      type: "bad"
+    },
+    vargyam: {
+      title: "వర్జ్యం",
+      effects: "ఈ సమయంలో చేసే పనులు విఫలమయ్యే అవకాశం ఉంటుంది. ఇది అశుభప్రదమైన కాలంగా భావిస్తారు.",
+      advice: "ముఖ్యమైన పనులు, ప్రయాణాలు మరియు శుభకార్యాలు నివారించడం శ్రేయస్కరం.",
+      type: "bad"
+    },
+    abhijit: {
+      title: "అభిజిత్ ముహూర్తం",
+      effects: "మధ్యాహ్నం సమయంలో వచ్చే అత్యంత శుభప్రదమైన ముహూర్తం. ఏక కాలంలో రాహువు దోషాలను తొలగించగల శక్తి దీనికి ఉంది.",
+      advice: "అన్ని రకాల శుభకార్యాలకు, ముఖ్యంగా కొత్త పనులు మరియు వ్యాపార ప్రారంభాలకు ఇది శ్రేష్టం.",
+      type: "good"
+    },
+    amrit: {
+      title: "అమృత కాలం",
+      effects: "అమృతం వలె ఫలనిచ్చే అత్యంత పవిత్రమైన సమయం. దేవతలు ఈ సమయంలో అనుగ్రహం చూపిస్తారని ప్రసిద్ది.",
+      advice: "జపాలు, హోమాలు, ముఖ్యమైన చర్చలు మరియు పుణ్య కార్యక్రమాలకు అత్యంత అనుకూలం.",
+      type: "good"
+    },
+    brahma: {
+      title: "బ్రహ్మ ముహూర్తం",
+      effects: "సూర్యోదయానికి ముందు వచ్చే అత్యంత పవిత్ర సమయం. ఈ సమయంలో మెదడు చురుకుగా ఉండి పాజిటివ్ ఎనర్జీ ఎక్కువగా ఉంటుంది.",
+      advice: "యోగా, ధ్యానం, విద్యాభ్యాసం మరియు దైవ చింతనకు ఇది ఉత్తమ సమయం.",
+      type: "good"
+    },
+    vijaya: {
+      title: "విజయ ముహూర్తం",
+      effects: "పనులలో విజయసాధనకు అనువైన సమయం. ఏ కార్యమైనా ఈ సమయంలో మొదలుపెడితే విజయం సిద్ధిస్తుందని పురాణాల కథనం.",
+      advice: "పెద్ద ఒప్పందాలు, కొత్త సవాళ్ళు మరియు ముఖ్యమైన పనుల విజయానికి అనుకూలం.",
+      type: "good"
+    },
+    godhuli: {
+      title: "గోదూలి ముహూర్తం",
+      effects: "సూర్యాస్తమయ సమయంలో శాంతి మరియు మంగళకరమైన వాతావరణం ఉంటుంది.",
+      advice: "వివాహాలు, ప్రయాణాలు మరియు గృహ ప్రవేశాలకు ఈ ముహూర్తం చాలా ప్రశస్తమైనది.",
+      type: "good"
+    },
+    sandhya: {
+      title: "సంధ్యా కాలం",
+      effects: "పగలు మరియు రాత్రి కలిసే పవిత్ర సమయం (ప్రాతః సాంధ్య / సాయంసాంధ్య).",
+      advice: "సూర్య నమస్కారాలు, గాయత్రీ మంత్రం, మరియు దీపారాధన వంటి ఆధ్యాత్మిక కార్యాలకు శ్రేష్టం.",
+      type: "neutral"
+    },
+    nishita: {
+      title: "నిశీత ముహూర్తం",
+      effects: "అర్ధరాత్రి సమయంలో వచ్చే అత్యంత శక్తివంతమైన సమయం. శివ పూజకు మరియు తపస్సులకు ఇది ప్రత్యేకమైనది.",
+      advice: "శివరాత్రి పూజలు, ధ్యానం మరియు ఆధ్యాత్మిక సాధనకు ప్రాధాన్యత ఇవ్వండి.",
+      type: "neutral"
+    }
+  };
+
+  const handleInfoClick = (label) => {
+    const type = detectEventType(label);
+    if (timingDetailMapping[type]) {
+      setSelectedTimingInfo(timingDetailMapping[type]);
+    }
+  };
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -201,6 +334,19 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   const currentKaranam = karanamItem?.type === "event_list" ? getCurrentEvent(karanamItem.events) : null;
   const currentYogam = yogamItem?.type === "event_list" ? getCurrentEvent(yogamItem.events) : null;
 
+  // Get fixed inauspicious timings for the day
+  const fixedTimings = getFixedTimingsForDay(dayName);
+
+  // Helper to get fixed value for a label
+  const getFixedValue = (label, originalValue) => {
+    if (!fixedTimings) return originalValue;
+    const labelLower = label.toLowerCase();
+    if (labelLower.includes('రాహు') || labelLower.includes('rahu')) return fixedTimings.rahu;
+    if (labelLower.includes('యమ') || labelLower.includes('yama')) return fixedTimings.yama;
+    if (labelLower.includes('గులిక') || labelLower.includes('gulika')) return fixedTimings.gulika;
+    return originalValue;
+  };
+
   // Prepare events for TimeIndicator (combine auspicious and inauspicious)
   const dateStr = data.date || (date ? (typeof date === 'string' ? date : date.toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]);
   const allEvents = [
@@ -211,6 +357,7 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
     })),
     ...(inauspiciousSection?.items || []).map(item => ({
       ...item,
+      value: getFixedValue(item.label, item.value),
       type: detectEventType(item.label),
       isInauspicious: true
     }))
@@ -218,98 +365,105 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   const summary = findItem(traditionalPanchangamSection, "సారాంశం").value
   const summary_array = summary.split(';')
   return (
-    <div className="space-y-4 animate-fade-in">
-      {/* Top Section - Date and General Information */}
-      <div className="glass rounded-2xl p-6 shadow-soft border border-white/50 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-pink-200/30 to-red-200/30 rounded-full -mr-20 -mt-20 blur-2xl"></div>
+    <div ref={contentRef} className="space-y-4 animate-fade-in p-1">
+      {/* Top Section - Date and Navigation */}
+      <div className="glass rounded-3xl p-6 shadow-xl border border-white/60 relative overflow-hidden bg-gradient-to-b from-white to-orange-50/50">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-pink-400/20 rounded-full -mr-20 -mt-20 blur-3xl rounded-bl-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-yellow-400/20 to-orange-300/20 rounded-full -ml-16 -mb-16 blur-2xl"></div>
 
         <div className="relative z-10">
-          {/* Navigation arrows */}
-          <div className="flex items-center justify-between mb-4">
+          {/* Header Navigation */}
+          <div className="flex items-center justify-between mb-6">
             <button
               onClick={onPrevDate}
-              className="p-2 rounded-lg hover:bg-pink-50 transition-colors text-pink-600"
+              className="p-3 rounded-full bg-white shadow-sm hover:shadow-md hover:bg-orange-50 transition-all text-orange-600 border border-orange-100"
               aria-label="Previous day"
             >
-              <FaChevronLeft size={16} />
+              <FaChevronLeft size={14} />
             </button>
 
-            <div className="text-center flex-1">
-              <h2 className="text-lg font-bold text-pink-700 mb-1">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-gray-800 tracking-wide mb-1">
                 {teluguMonth} - {teluguDay}
               </h2>
-              <div className="text-2xl font-bold text-red-600 mt-2">
-                {dateObj.getDate()}-{String(dateObj.getMonth() + 1).padStart(2, '0')}-{dateObj.getFullYear()}
+              <div className="inline-block bg-gradient-to-r from-orange-500 to-pink-600 text-transparent bg-clip-text text-3xl font-black">
+                {dateObj.getDate().toString().padStart(2, '0')}-{String(dateObj.getMonth() + 1).padStart(2, '0')}-{dateObj.getFullYear()}
               </div>
             </div>
 
             <button
               onClick={onNextDate}
-              className="p-2 rounded-lg hover:bg-pink-50 transition-colors text-pink-600"
+              className="p-3 rounded-full bg-white shadow-sm hover:shadow-md hover:bg-orange-50 transition-all text-orange-600 border border-orange-100"
               aria-label="Next day"
             >
-              <FaChevronRight size={16} />
+              <FaChevronRight size={14} />
             </button>
           </div>
 
-          {/* Hindu Calendar Details */}
-          <div className="space-y-2 mt-4 pt-4 border-t border-gray-200">
-            {traditionalPanchangamSection && (
-              <>
-                {findItem(traditionalPanchangamSection, "సారాంశం") && (
-                  <div className="text-sm">
-
-                                        <div className="text-red-600 font-bold text-xl text-center mb-6 "> {summary_array[0]} </div>
-<div>{summary_array[1]}, {summary_array[2]}, {summary_array[3]},
-
-            {lunarMonthSection && (
-              <>
-                {findItem(lunarMonthSection, "పక్షం") && (
-
-                    <span className="text-red-600  text-center font-bold">
-                      {findItem(lunarMonthSection, "పక్షం").value}
-                    </span>
-
-                )}
-              </>
-            )}
-
-            {/* Tithulu (తిథులు) from Basic Panchangam */}
-            {panchangamSection && findItem(panchangamSection, "తిథులు") && (
-              <div className="mt-4">
-                <div className="text-sm  text-red-700 mb-2 font-bold">తిథులు</div>
-                <div className="space-y-2">
-                  {findItem(panchangamSection, "తిథులు").events?.map((event, index) => (
-                    <div key={index} className="bg-white/50 rounded-lg p-3 border border-indigo-100">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span className="text-indigo-600 font-medium">{event.name}</span>
-
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {event.start}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {/* Daily Summary Card */}
+          {traditionalPanchangamSection && findItem(traditionalPanchangamSection, "సారాంశం") && (
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-orange-100/50 text-center mb-6">
+              <div className="text-orange-700 font-bold text-lg mb-2 tracking-wide font-telugu">
+                {summary_array[0]}
               </div>
-            )}
+              <div className="text-gray-600 text-sm leading-relaxed font-medium">
+                {summary_array.slice(1).join(" • ")}
+              </div>
+              
+              {lunarMonthSection && findItem(lunarMonthSection, "పక్షం") && (
+                <div className="mt-3 inline-flex items-center justify-center px-4 py-1.5 bg-orange-50 text-orange-700 text-xs font-bold rounded-full border border-orange-200">
+                  {findItem(lunarMonthSection, "పక్షం").value}
+                </div>
+              )}
+            </div>
+          )}
 
-</div>
-                  </div>
-                )}
-              </>
-            )}
+          {/* Sunrise / Sunset / Moonrise / Moonset Compact Row */}
+          <div className="grid grid-cols-2 gap-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-xl p-4 border border-orange-100/50">
+             {/* Sunrise */}
+             <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shadow-sm">
+                  <FaSun size={16} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-orange-900/60 font-bold uppercase tracking-wide">సూర్యోదయం</span>
+                  <span className="text-gray-800 font-bold text-sm">{sunriseItem?.value || "-"}</span>
+                </div>
+             </div>
 
+             {/* Sunset */}
+             <div className="flex items-center gap-3 justify-end">
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] text-orange-900/60 font-bold uppercase tracking-wide">సూర్యాస్తమయం</span>
+                  <span className="text-gray-800 font-bold text-sm">{sunsetItem?.value || "-"}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shadow-sm">
+                  <FaSun size={16} />
+                </div>
+             </div>
 
-          </div>
+             {/* Moonrise */}
+             <div className="flex items-center gap-3 pt-2 border-t border-orange-200/50">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm">
+                  <FaMoon size={14} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రోదయం</span>
+                  <span className="text-gray-800 font-bold text-sm">{moonriseItem?.value || "-"}</span>
+                </div>
+             </div>
 
-          {/* WhatsApp share button */}
-          <div className="mt-4 flex justify-end">
-            <button className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors">
-              <FaWhatsapp size={18} />
-            </button>
+             {/* Moonset */}
+             <div className="flex items-center gap-3 justify-end pt-2 border-t border-orange-200/50">
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రాస్తమయం</span>
+                  <span className="text-gray-800 font-bold text-sm">{moonsetItem?.value || "-"}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm">
+                  <FaMoon size={14} />
+                </div>
+             </div>
           </div>
         </div>
       </div>
@@ -329,96 +483,23 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
       {/* Time Indicator - Active/Upcoming Events */}
       <TimeIndicator events={allEvents} dateStr={dateStr} />
 
-
-
-      {/* Sunrise/Sunset Section */}
-      <div className="glass rounded-2xl p-5 shadow-soft border border-white/50">
-        <div className="mb-4">
-          <h3 className="text-sm font-bold text-indigo-600 mb-3">సూర్య చంద్రోదయాలు</h3>
-        </div>
-
-        {/* Sun Times */}
-        <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl">
-              <FaSun className="text-white" size={20} />
-            </div>
-            <div>
-              <div className="text-xs text-indigo-500 font-medium">సూర్యోదయం</div>
-              <div className="text-lg font-bold text-indigo-700">{sunriseItem?.value || "-"}</div>
-            </div>
-          </div>
-
-          <div className="flex-1 mx-4 h-px bg-gradient-to-r from-yellow-200 via-orange-200 to-blue-200"></div>
-
-          <div className="flex items-center gap-3">
-            <div>
-              <div className="text-xs text-indigo-500 font-medium text-right">సూర్యాస్తమయం</div>
-              <div className="text-lg font-bold text-indigo-700 text-right">{sunsetItem?.value || "-"}</div>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl">
-              <FaSun className="text-white" size={20} />
-            </div>
-          </div>
-        </div>
-
-        {/* Moon Times */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl">
-              <FaMoon className="text-white" size={20} />
-            </div>
-            <div>
-              <div className="text-xs text-indigo-500 font-medium">చంద్రోదయం</div>
-              <div className="text-lg font-bold text-indigo-700">{moonriseItem?.value || "-"}</div>
-            </div>
-          </div>
-
-          <div className="flex-1 mx-4 h-px bg-gradient-to-r from-blue-200 via-purple-200 to-indigo-200"></div>
-
-          <div className="flex items-center gap-3">
-            <div>
-              <div className="text-xs text-indigo-500 font-medium text-right">చంద్రాస్తమయం</div>
-              <div className="text-lg font-bold text-indigo-700 text-right">{moonsetItem?.value || "-"}</div>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-xl">
-              <FaMoon className="text-white" size={20} />
-            </div>
-          </div>
-        </div>
+      {/* Astro Grid - Key Panchangam Details */}
+      <h3 className="text-lg font-bold text-gray-800 ml-2 mt-6 mb-3 flex items-center gap-2">
+        <span className="w-1 h-6 bg-orange-500 rounded-full"></span>
+        పంచాంగ వివరాలు
+      </h3>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <AstroCardImproved icon="🌙" title="తిథి" value={currentTithi?.name} time={currentTithi ? formatEventTime(currentTithi) : ""} color="indigo" />
+        <AstroCardImproved icon="⭐" title="నక్షత్రం" value={currentNakshatram?.name} time={currentNakshatram ? formatEventTime(currentNakshatram) : ""} color="purple" />
+        <AstroCardImproved icon="🧘" title="యోగం" value={currentYogam?.name} time={currentYogam ? formatEventTime(currentYogam) : ""} color="teal" />
+        <AstroCardImproved icon="🐾" title="కరణం" value={currentKaranam?.name} time={currentKaranam ? formatEventTime(currentKaranam) : ""} color="rose" />
       </div>
 
-      {/* Astrological Details - Tithi, Nakshatram, Yogam, Karanam */}
-      <div className="grid grid-cols-2 gap-3">
-        <AstroCard
-          title="తిథి"
-          value={currentTithi?.name || "-"}
-          time={currentTithi ? formatEventTime(currentTithi) : ""}
-          gradient="from-purple-400 to-pink-500"
-        />
-        <AstroCard
-          title="నక్షత్రం"
-          value={currentNakshatram?.name || "-"}
-          time={currentNakshatram ? formatEventTime(currentNakshatram) : ""}
-          gradient="from-indigo-400 to-purple-500"
-        />
-        <AstroCard
-          title="యోగం"
-          value={currentYogam?.name || "-"}
-          time={currentYogam ? formatEventTime(currentYogam) : ""}
-          gradient="from-green-400 to-teal-500"
-        />
-        <AstroCard
-          title="కరణం"
-          value={currentKaranam?.name || "-"}
-          time={currentKaranam ? formatEventTime(currentKaranam) : ""}
-          gradient="from-orange-400 to-red-500"
-        />
-      </div>
-
-      {/* Auspicious Times Section */}
+      {/* Auspicious Times */}
+      {/* Auspicious Times Section with View More */}
       {auspiciousSection && auspiciousSection.items && auspiciousSection.items.length > 0 && (
-        <div className="glass rounded-2xl p-5 shadow-soft border border-white/50">
+        <div className="glass rounded-2xl p-5 shadow-soft border border-white/50 mt-6">
           <h3 className="text-lg font-bold text-pink-700 mb-4">శుభ సమయములు</h3>
           <div className="space-y-3">
             {/* Show first 3 items */}
@@ -428,6 +509,7 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
                 label={item.label}
                 value={item.value}
                 isInauspicious={false}
+                onInfoClick={() => handleInfoClick(item.label)}
               />
             ))}
 
@@ -444,6 +526,7 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
                       label={item.label}
                       value={item.value}
                       isInauspicious={false}
+                      onInfoClick={() => handleInfoClick(item.label)}
                     />
                   </div>
                 ))}
@@ -470,6 +553,19 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
         </div>
       )}
 
+ 
+      {/* Share Button (Sticky Bottom) */}
+      <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center pointer-events-none fade-in-up">
+        <button 
+          onClick={handleShare}
+          disabled={isSharing}
+          className={`pointer-events-auto flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full shadow-xl shadow-orange-900/20 hover:scale-105 active:scale-95 transition-all font-bold text-lg border-2 border-orange-400/50 ${isSharing ? 'opacity-75 cursor-wait' : ''}`}
+        >
+          <FaWhatsapp size={22} className="animate-pulse" />
+          <span>Share Panchangam</span>
+        </button>
+      </div>
+
       {/* Inauspicious Times Section */}
       {inauspiciousSection && inauspiciousSection.items && inauspiciousSection.items.length > 0 && (
         <div className="glass rounded-2xl p-5 shadow-soft border border-white/50">
@@ -479,10 +575,60 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
               <TimeItem
                 key={idx}
                 label={item.label}
-                value={item.value}
+                value={getFixedValue(item.label, item.value)}
                 isInauspicious={true}
+                onInfoClick={() => handleInfoClick(item.label)}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Timing Info Modal */}
+      {selectedTimingInfo && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-6 animate-fade-in"
+          onClick={() => setSelectedTimingInfo(null)}
+        >
+          <div 
+            className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl relative overflow-hidden flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className={`absolute top-0 left-0 right-0 h-2 ${selectedTimingInfo.type === 'bad' ? 'bg-red-500' : selectedTimingInfo.type === 'good' ? 'bg-green-500' : 'bg-indigo-500'}`}></div>
+            
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <FaInfoCircle className={selectedTimingInfo.type === 'bad' ? 'text-red-500' : selectedTimingInfo.type === 'good' ? 'text-green-500' : 'text-indigo-500'} size={24} />
+                {selectedTimingInfo.title}
+              </h3>
+              <button 
+                onClick={() => setSelectedTimingInfo(null)} 
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-6 text-gray-700 leading-relaxed text-sm mb-8">
+              <div>
+                <h4 className={`font-bold text-base mb-2 ${selectedTimingInfo.type === 'bad' ? 'text-red-700' : selectedTimingInfo.type === 'good' ? 'text-green-700' : 'text-indigo-700'}`}>ప్రభావం:</h4>
+                <p>{selectedTimingInfo.effects}</p>
+              </div>
+              
+              <div className={`p-4 rounded-2xl border ${selectedTimingInfo.type === 'bad' ? 'bg-red-50 border-red-100' : selectedTimingInfo.type === 'good' ? 'bg-green-50 border-green-100' : 'bg-indigo-50 border-indigo-100'}`}>
+                <h4 className={`font-bold text-base mb-2 ${selectedTimingInfo.type === 'bad' ? 'text-red-800' : selectedTimingInfo.type === 'good' ? 'text-green-800' : 'text-indigo-800'}`}>{selectedTimingInfo.type === 'bad' ? 'ఏమి నివారించాలి?' : 'ఎప్పుడు అనుకూలం?'}</h4>
+                <p className={selectedTimingInfo.type === 'bad' ? 'text-red-900' : selectedTimingInfo.type === 'good' ? 'text-green-900' : 'text-indigo-900'}>{selectedTimingInfo.advice}</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setSelectedTimingInfo(null)} 
+              className={`w-full py-4 text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all text-center ${selectedTimingInfo.type === 'bad' ? 'bg-red-600 hover:bg-red-700 shadow-red-100' : selectedTimingInfo.type === 'good' ? 'bg-green-600 hover:bg-green-700 shadow-green-100' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'}`}
+            >
+              సరే, అర్థమైంది
+            </button>
           </div>
         </div>
       )}
@@ -538,16 +684,107 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
           </div>
         </div>
       ) : null}
+
+      {/* HIDDEN SHARE CARD - Rendered off-screen for screenshotting */}
+      <div style={{ position: 'absolute', top: -9999, left: -9999, visibility: 'visible' }}> 
+          <div ref={shareRef}>
+             <DailyPanchangamShare data={data} date={dateStr} />
+          </div>
+      </div>
     </div>
   );
 }
 
-function AstroCard({ title, value, time, gradient }) {
+// --- Reduced & Improved Helper Components ---
+
+const AstroCardImproved = ({ title, value, time, color, icon }) => {
+  const colorMap = {
+    indigo: "from-indigo-500 to-blue-600 shadow-indigo-200",
+    purple: "from-purple-500 to-fuchsia-600 shadow-purple-200",
+    teal: "from-teal-400 to-emerald-500 shadow-teal-200",
+    rose: "from-rose-500 to-red-600 shadow-rose-200",
+    orange: "from-orange-400 to-amber-500 shadow-orange-200"
+  };
+
+  const gradient = colorMap[color] || colorMap.indigo;
+
+  return (
+    <div className="relative overflow-hidden bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+      <div className={`absolute top-0 right-0 w-12 h-12 bg-gradient-to-br ${gradient} opacity-10 rounded-bl-full -mr-2 -mt-2 transition-transform group-hover:scale-110`}></div>
+      
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xl">{icon}</span>
+        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{title}</h4>
+      </div>
+      
+      <div className="font-bold text-gray-800 text-lg leading-tight mb-1">
+        {value || "-"}
+      </div>
+      
+      {time && (
+        <div className="text-xs font-medium text-gray-500 bg-gray-50 inline-block px-2 py-1 rounded-md border border-gray-200/50">
+          {time}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CollapsibleSection = ({ title, children, isOpenDefault = false, color = "gray" }) => {
+  const [isOpen, setIsOpen] = useState(isOpenDefault);
+
+  const titleColors = {
+    green: "text-green-800",
+    red: "text-red-800",
+    gray: "text-gray-800"
+  };
+  
+  const bgColors = {
+      green: "bg-green-50 border-green-100",
+      red: "bg-red-50 border-red-100",
+      gray: "bg-gray-50 border-gray-200"
+  };
+
+  return (
+    <div className={`rounded-2xl border overflow-hidden transition-all ${bgColors[color] || bgColors.gray}`}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 font-bold text-left"
+      >
+        <span className={`text-lg ${titleColors[color]}`}>{title}</span>
+        <span className={`p-2 rounded-full bg-white/50 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+           <FaChevronDown size={12} />
+        </span>
+      </button>
+      
+      <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="p-4 pt-0">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TimeRow = ({ label, value, isGood, onClick }) => (
+  <div onClick={onClick} className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 hover:bg-white active:scale-[99%] transition-all cursor-pointer">
+    <div className="flex items-center gap-3">
+       <div className={`w-1.5 h-8 rounded-full ${isGood ? 'bg-green-400' : 'bg-red-400'}`}></div>
+       <span className="font-medium text-gray-700">{label}</span>
+    </div>
+    <span className="font-bold text-gray-900 text-sm">{value}</span>
+  </div>
+);
+
+function AstroCard({ title, value, time, gradient, icon }) {
   return (
     <div className="glass rounded-xl p-4 shadow-soft border border-white/50 overflow-hidden relative">
       <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5`}></div>
       <div className="relative z-10">
-        <div className="text-xs font-bold text-pink-600 mb-2">{title}</div>
+        <div className="flex justify-between items-start mb-2">
+          <div className="text-xs font-bold text-pink-600">{title}</div>
+          {icon && <div className="flex-shrink-0 ml-2">{icon}</div>}
+        </div>
         <div className="text-sm font-bold text-indigo-700 mb-1">{value}</div>
         {time && (
           <div className="text-xs text-indigo-500 mt-1">
@@ -559,7 +796,9 @@ function AstroCard({ title, value, time, gradient }) {
   );
 }
 
-function TimeItem({ label, value, isInauspicious }) {
+function TimeItem({ label, value, isInauspicious, onInfoClick }) {
+  const showInfoIcon = ['rahu', 'yama', 'gulika', 'durmuhurtham', 'vargyam', 'abhijit', 'amrit', 'brahma', 'vijaya', 'godhuli', 'sandhya', 'nishita'].includes(detectEventType(label));
+
   return (
     <div className={`p-3 rounded-lg border ${
       isInauspicious
@@ -567,7 +806,20 @@ function TimeItem({ label, value, isInauspicious }) {
         : "bg-green-50 border-green-200/50"
     }`}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-indigo-700">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-indigo-700">{label}</span>
+          {showInfoIcon && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onInfoClick();
+              }}
+              className={`${isInauspicious ? 'text-red-400 hover:text-red-600' : 'text-green-400 hover:text-green-600'} transition-colors`}
+            >
+              <FaInfoCircle size={14} />
+            </button>
+          )}
+        </div>
         <span className={`text-sm font-semibold ${
           isInauspicious ? "text-red-600" : "text-green-600"
         }`}>

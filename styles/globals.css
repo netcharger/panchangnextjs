@@ -122,3 +122,30 @@ body.menu-open {
 .animate-fade-in-up {
   animation: fadeInUp 0.3s ease-out forwards;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Sleek Scrollbar */
+.sleek-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.sleek-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 107, 53, 0.3); /* Saffron with low opacity */
+    border-radius: 10px;
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 107, 53, 0.6);
+}

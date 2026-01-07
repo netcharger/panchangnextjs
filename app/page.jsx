@@ -15,6 +15,9 @@ import PopupModal from "../components/PopupModal"; // Added PopupModal import
 import getBaseURL    from "../lib/getBaseURL";
 
 import { getCurrentGreeting, getCurrentTimeInterval } from "../lib/greetings";
+import { gowriData } from "../data/gauriPanchangamData";
+import { gowriValuesInfo } from "../data/gauriPanchangInfo";
+import AshtaSiddhantaWidget from "../components/AshtaSiddhantaWidget";
 import { Suravaram } from "next/font/google";
 
 const suravaram = Suravaram({
@@ -41,6 +44,17 @@ export default function Home() {
   const [popupImageUrl, setPopupImageUrl] = useState(null);
   const [popupRedirectUrl, setPopupRedirectUrl] = useState(null);
   const [isPopupModalVisible, setIsPopupModalVisible] = useState(false);
+
+  // Fix hydration error by using client-side state for time-dependent content
+  const [mounted, setMounted] = useState(false);
+  const [greeting, setGreeting] = useState({ text: "శుభోదయం", key: "good_morning" });
+  const [timeInterval, setTimeInterval] = useState({ label: "ఉదయం సమయం", key: "morning" });
+  const [timeStr, setTimeStr] = useState("");
+
+  const [today, setToday] = useState(null);
+  const [dayName, setDayName] = useState("");
+  const [monthName, setMonthName] = useState("");
+  const [currentGowriStatus, setCurrentGowriStatus] = useState(null);
 
   useEffect(() => {
     const fetchSplashImage = async () => {
@@ -102,6 +116,34 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Calculate Gauri Panchangam Status
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const checkGowriStatus = () => {
+       const now = new Date();
+       const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+       const dayKey = days[now.getDay()];
+       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+       
+       const slot = gowriData.find(s => {
+          if (s.end === "00:00") return timeStr >= s.start;
+          if (s.start === "00:00") return timeStr >= s.start && timeStr < s.end;
+          return timeStr >= s.start && timeStr < s.end;
+       });
+
+       if (slot) {
+           const status = slot[dayKey];
+           const info = gowriValuesInfo[status];
+           setCurrentGowriStatus({ name: status, ...info });
+       }
+    };
+
+    checkGowriStatus();
+    const timer = setInterval(checkGowriStatus, 60000);
+    return () => clearInterval(timer);
+  }, [mounted]);
+
   // Fetch carousel images from Django API
   const { data: carouselImages = [], isLoading: carouselLoading, error: carouselError } = useQuery({
     queryKey: ["carousel"],
@@ -125,14 +167,7 @@ export default function Home() {
 
 
   // Fix hydration error by using client-side state for time-dependent content
-  const [mounted, setMounted] = useState(false);
-  const [greeting, setGreeting] = useState({ text: "శుభోదయం", key: "good_morning" });
-  const [timeInterval, setTimeInterval] = useState({ label: "ఉదయం సమయం", key: "morning" });
-  const [timeStr, setTimeStr] = useState("");
 
-  const [today, setToday] = useState(null);
-  const [dayName, setDayName] = useState("");
-  const [monthName, setMonthName] = useState("");
 
   // Telugu day and month names
   const teluguDays = {
@@ -312,6 +347,40 @@ export default function Home() {
           </Link>
         </div>
       </div>
+      {/* Gauri Panchangam Widget */}
+      {mounted && currentGowriStatus && (
+        <div className="mb-6">
+           <Link href="/gauri-panchangam">
+            <div className="glass rounded-2xl p-6 shadow-soft border border-white/50 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-50 to-orange-100 opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10 flex items-center justify-between">
+                <img src={"/images/gowri-devi.png"} alt="Gauri Panchangam" className="w-16 h-16 object-cover rounded-full shadow-md border-2 border-white" />
+                    <div>
+                        <h3 className="text-lg font-bold text-orange-900 mb-1">గౌరీ పంచాంగం ప్రకారం</h3>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-orange-700"> ఇప్పుడు నడుస్తున్న కాలం</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase border bg-white"
+                                  style={{ 
+                                      color: currentGowriStatus.color || '#ea580c',
+                                      borderColor: currentGowriStatus.color || '#ea580c'
+                                  }}>
+                                {currentGowriStatus.name}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform text-orange-600">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                </div>
+            </div>
+           </Link>
+      </div>
+      )}
+
+      {/* Ashta Siddhanta Widget */}
+      <div className="mb-6">
+        <AshtaSiddhantaWidget />
+      </div>
 
       {/* Quick Links Grid */}
       <div className="mb-6">
@@ -416,6 +485,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+
     </div>
   );
 }

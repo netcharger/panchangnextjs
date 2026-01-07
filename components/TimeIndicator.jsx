@@ -22,7 +22,7 @@ const getEventColor = (type, isInauspicious = false) => {
 const parseTimeRange = (timeString, dateStr) => {
   if (!timeString) return null;
   
-  const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  const match = timeString.match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*[-–—]\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (!match) return null;
   
   const [, startHour, startMin, startPeriod, endHour, endMin, endPeriod] = match;
@@ -52,9 +52,16 @@ const detectEventType = (label) => {
   const labelLower = label.toLowerCase();
   if (labelLower.includes('రాహు') || labelLower.includes('rahu')) return 'rahu';
   if (labelLower.includes('యమ') || labelLower.includes('yama')) return 'yama';
-  if (labelLower.includes('గులిక') || labelLower.includes('gulika')) return 'gulika';
+  if (labelLower.includes('గులిక') || labelLower.includes('గుళిక') || labelLower.includes('gulika')) return 'gulika';
   if (labelLower.includes('దుర్ముహూర్త') || labelLower.includes('durmuhurtham')) return 'durmuhurtham';
+  if (labelLower.includes('వర్జ్యం') || labelLower.includes('vargyam')) return 'vargyam';
+  if (labelLower.includes('అభిజిత్') || labelLower.includes('abhijit')) return 'abhijit';
   if (labelLower.includes('అమృత') || labelLower.includes('amrit')) return 'amrit';
+  if (labelLower.includes('బ్రహ్మ') || labelLower.includes('brahma')) return 'brahma';
+  if (labelLower.includes('విజయ') || labelLower.includes('vijaya')) return 'vijaya';
+  if (labelLower.includes('గోదూలి') || labelLower.includes('godhuli')) return 'godhuli';
+  if (labelLower.includes('ప్రాత') || labelLower.includes('సంధ్య') || labelLower.includes('prata')) return 'sandhya';
+  if (labelLower.includes('నిశీత') || labelLower.includes('nishita')) return 'nishita';
   if (labelLower.includes('ముహూర్త') || labelLower.includes('muhurtham')) return 'muhurtham';
   return 'muhurtham'; // Default to good muhurtham
 };

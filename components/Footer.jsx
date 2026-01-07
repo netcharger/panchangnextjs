@@ -13,8 +13,6 @@ export default function Footer() {
     { icon: FaCalendarAlt, label: "Calendar", path: "/calendar" },
     { icon: FaThList, label: "Categories", path: "/categories" },
     { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
-    { icon: FaMusic, label: "Music", path: "/music" },
-    { icon: FaBell, label: "Alarms", path: "/my-alarms" },
   ];
 
   const isActive = (path) => {

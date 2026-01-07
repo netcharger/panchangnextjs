@@ -45,7 +45,6 @@ export default function Header() {
     { icon: FaCalendarAlt, label: "Calendar", path: "/calendar" },
     { icon: FaThList, label: "Categories", path: "/categories" },
     { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
-    { icon: FaMusic, label: "Music", path: "/music" },
     { icon: FaUser, label: "Profile & Settings", path: "/settings" },
   ];
 
