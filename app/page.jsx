@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaCalendarAlt, FaThList, FaImages, FaMusic, FaSun, FaMoon, FaStar } from "react-icons/fa";
+import { FaCalendarAlt, FaThList, FaImages, FaHandsHelping, FaSun, FaMoon, FaStar } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCarouselImages, fetchCategories, fetchLatestWallpapers } from "../lib/api";
 import ImageCarousel from "../components/ImageCarousel";
@@ -115,6 +115,23 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Handle back button for modals
+  useEffect(() => {
+    const handlePopState = () => {
+      if (isSplashModalVisible) setIsSplashModalVisible(false);
+      if (isPopupModalVisible) setIsPopupModalVisible(false);
+    };
+
+    if (isSplashModalVisible || isPopupModalVisible) {
+      window.history.pushState({ modalOpen: true }, '');
+      window.addEventListener('popstate', handlePopState);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isSplashModalVisible, isPopupModalVisible]);
 
   // Calculate Gauri Panchangam Status
   useEffect(() => {
@@ -232,10 +249,10 @@ export default function Home() {
       gradient: "from-pink-400 to-pink-600"
     },
     {
-      icon: FaMusic,
-      title: "Music",
-      description: "Devotional music",
-      href: "/music",
+      icon: FaHandsHelping,
+      title: "Services",
+      description: "Muhurthaalu services",
+      href: "/online-muhurthalu",
       gradient: "from-orange-400 to-orange-600"
     }
   ];

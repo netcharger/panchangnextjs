@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaBars, FaTimes, FaHome, FaCalendarAlt, FaThList, FaImages, FaMusic, FaUser, FaPalette, FaSearch, FaBell } from "react-icons/fa";
+import { FaBars, FaTimes, FaHome, FaCalendarAlt, FaThList, FaImages, FaUser, FaPalette, FaSearch, FaBell, FaHandsHelping } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
@@ -44,6 +44,7 @@ export default function Header() {
     { icon: FaHome, label: "Home", path: "/" },
     { icon: FaCalendarAlt, label: "Calendar", path: "/calendar" },
     { icon: FaThList, label: "Categories", path: "/categories" },
+    { icon: FaHandsHelping, label: "Services", path: "/online-muhurthalu" },
     { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
     { icon: FaUser, label: "Profile & Settings", path: "/settings" },
   ];

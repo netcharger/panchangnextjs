@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaCalendarAlt, FaThList, FaImages, FaMusic, FaBell } from "react-icons/fa";
+import { FaHome, FaCalendarAlt, FaThList, FaImages, FaBell, FaHandsHelping } from "react-icons/fa";
 import clsx from "clsx";
 
 export default function Footer() {
@@ -12,6 +12,7 @@ export default function Footer() {
 
     { icon: FaCalendarAlt, label: "Calendar", path: "/calendar" },
     { icon: FaThList, label: "Categories", path: "/categories" },
+    { icon: FaHandsHelping, label: "Services", path: "/online-muhurthalu" },
     { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
   ];
 
