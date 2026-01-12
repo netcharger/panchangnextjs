@@ -5,16 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaCalendarAlt, FaThList, FaImages, FaHandsHelping, FaSun, FaMoon, FaStar } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCarouselImages, fetchCategories, fetchLatestWallpapers } from "../lib/api";
+import { fetchCarouselImages, fetchCategories, fetchLatestWallpapers } from "../lib/api.js";
 import ImageCarousel from "../components/ImageCarousel";
 import CategoriesGrid from "../components/CategoriesGrid";
 import WallpaperGrid from "../components/WallpaperGrid";
 import NextJsSplashImageModal from "../components/NextJsSplashImageModal";
 import PopupModal from "../components/PopupModal"; // Added PopupModal import
 
-import getBaseURL    from "../lib/getBaseURL";
-
-import { getCurrentGreeting, getCurrentTimeInterval } from "../lib/greetings";
+import getBaseURL    from "../lib/getBaseURL.js";
+import { getCurrentGreeting, getCurrentTimeInterval } from "../lib/greetings.js";
 import { gowriData } from "../data/gauriPanchangamData";
 import { gowriValuesInfo } from "../data/gauriPanchangInfo";
 import AshtaSiddhantaWidget from "../components/AshtaSiddhantaWidget";

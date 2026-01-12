@@ -1,9 +1,9 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMusicCategories } from "../../lib/api";
+import { fetchMusicCategories } from "../../lib/api.js";
 import MusicList from "../../components/MusicList";
 import MusicCategoriesRow from "../../components/MusicCategoriesRow";
-import { sendToNative } from "../../lib/webviewBridge";
+import { sendToNative } from "../../lib/webviewBridge.js";
 import { FaMusic } from "react-icons/fa";
 
 export default function MusicPage() {

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaClock, FaTag, FaFolder } from "react-icons/fa";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 export default function PostsGrid({ posts = [] }) {
 
   if (posts.length === 0) {

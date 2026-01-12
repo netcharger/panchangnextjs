@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import clsx from "clsx";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 export default function CategoriesList({ categories = [] }) {
   // Get parent categories (categories with parent: null)
   const parentCategories = categories.filter(cat => !cat.parent || cat.parent === null);

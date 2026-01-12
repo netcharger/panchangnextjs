@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 import { FaMusic } from "react-icons/fa";
 
 export default function MusicCategoriesRow({ categories = [] }) {

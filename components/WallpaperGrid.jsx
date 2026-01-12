@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 import ImagePopup from "./ImagePopup";
 import { FaDownload } from "react-icons/fa"; // Import the download icon
 

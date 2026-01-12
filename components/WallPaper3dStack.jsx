@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useMemo } from "react";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 import ImagePopup from "./ImagePopup";
 
 export default function Wallpaper3DStack({ wallpapers = [] }) {

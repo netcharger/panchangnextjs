@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPostById, fetchPostsByCategory } from "../../../../lib/api";
+import { fetchPostById, fetchPostsByCategory } from "../../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";

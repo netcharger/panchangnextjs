@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { fetchCategories } from "../../lib/api";
+import { fetchCategories } from "../../lib/api.js";
 import { FaArrowLeft, FaSearch } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
-import { getImageSize } from "../../lib/image_sizes";
+import { getImageSize } from "../../lib/image_sizes.js";
 
 export default function CategoriesPage() {
   const router = useRouter();

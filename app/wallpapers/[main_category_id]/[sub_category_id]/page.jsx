@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { fetchWallpapers, fetchWallpaperSubCategories, fetchWallpaperMainCategories, fetchWallpapersNextPage } from "../../../../lib/api";
+import { fetchWallpapers, fetchWallpaperSubCategories, fetchWallpaperMainCategories, fetchWallpapersNextPage } from "../../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
 import { FaChevronLeft, FaImages } from "react-icons/fa";
 import WallpaperGrid from "../../../../components/WallpaperGrid";

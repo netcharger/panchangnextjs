@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchAllPosts } from "../../lib/api";
+import { fetchAllPosts } from "../../lib/api.js";
 import PostsGrid from "../../components/PostsGrid";
 
 export default function AllPostsPage() {

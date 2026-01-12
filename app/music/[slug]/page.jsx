@@ -2,15 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { fetchMusicCategoryBySlug, fetchAudioFilesByCategory } from "../../../lib/api";
+import { fetchMusicCategoryBySlug, fetchAudioFilesByCategory } from "../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { FaChevronLeft, FaMusic, FaHeadphones } from "react-icons/fa";
 import { getImageSize } from "../../../lib/image_sizes";
 import MusicList from "../../../components/MusicList";
-import { sendToNative } from "../../../lib/webviewBridge";
-import getBaseURL from "../../../lib/getBaseURL";
+import { sendToNative } from "../../../lib/webviewBridge.js";
+import getBaseURL from "../../../lib/getBaseURL.js";
 
 export default function MusicCategoryPage() {
   const params = useParams();

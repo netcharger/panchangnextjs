@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { FaTimes, FaDownload, FaImage, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { sendToNative } from "../lib/webviewBridge";
-import { getImageSize } from "../lib/image_sizes";
+import { sendToNative } from "../lib/webviewBridge.js";
+import { getImageSize } from "../lib/image_sizes.js";
 import { Mallanna } from "next/font/google";
 
 const mallanna = Mallanna({

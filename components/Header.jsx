@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
 import { Dhurjati } from "next/font/google";
-import {  WEB_APP_URL } from '../lib/constants';
+import {  WEB_APP_URL } from '../lib/constants.js';
 
 const dhurjati = Dhurjati({
   subsets: ["telugu"],

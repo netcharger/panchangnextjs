@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchWallpaperSubCategories, fetchWallpaperMainCategories } from "../../../lib/api";
+import { fetchWallpaperSubCategories, fetchWallpaperMainCategories } from "../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaImages, FaChevronLeft, FaChevronRight } from "react-icons/fa";

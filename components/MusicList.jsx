@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { FaPlay, FaPause, FaBell, FaDownload, FaCheck, FaSpinner } from "react-icons/fa";
-import { sendToNative, onNativeMessage } from "../lib/webviewBridge";
-import getBaseURL from "../lib/getBaseURL";
+import { sendToNative, onNativeMessage } from "../lib/webviewBridge.js";
+import getBaseURL from "../lib/getBaseURL.js";
 
 export default function MusicList({ tracks = [], onSetAlarm }) {
   const [playingId, setPlayingId] = useState(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import queryClient from "../lib/reactQueryClient";
+import queryClient from "../lib/reactQueryClient.js";
 
 export default function Providers({ children }) {
   return (

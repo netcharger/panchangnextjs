@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { getAshtaStatus, getAllAshtaSlots } from '../../lib/ashtaSiddhanta';
+import { getAshtaStatus, getAllAshtaSlots } from '../../lib/ashtaSiddhanta.js';
 import ashtaData from '../../data/ashtaSiddhanta.json';
 import ashtaMetadata from '../../data/ashtaMetadata.json';
 import { FaMoon, FaSun, FaInfoCircle, FaArrowLeft } from 'react-icons/fa';

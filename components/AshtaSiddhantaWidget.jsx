@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAshtaStatus } from "../lib/ashtaSiddhanta";
+import { getAshtaStatus } from "../lib/ashtaSiddhanta.js";
 import { FaClock } from "react-icons/fa";
 
 export default function AshtaSiddhantaWidget() {

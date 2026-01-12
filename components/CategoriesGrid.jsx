@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { getImageSize } from "../lib/image_sizes";
+import { getImageSize } from "../lib/image_sizes.js";
 export default function CategoriesGrid({ categories = [], limit = 4 }) {
   // Get parent categories (categories with parent: null)
   const parentCategories = categories

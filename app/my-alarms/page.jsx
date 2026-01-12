@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FaBell } from "react-icons/fa";
-import { onNativeMessage, sendToNative } from "../../lib/webviewBridge";
+import { onNativeMessage, sendToNative } from "../../lib/webviewBridge.js";
 
 const STORAGE_KEY = "pc_my_alarms";
 

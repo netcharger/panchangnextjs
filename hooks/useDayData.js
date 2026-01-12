@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchPanchangam } from "../lib/api";
+import { fetchPanchangam } from "../lib/api.js";
 
 export default function useDayData(date, language = 'te') {
   const { data, isLoading, error } = useQuery({

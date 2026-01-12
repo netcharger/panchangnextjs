@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchCategories } from "../../lib/api";
+import { fetchCategories } from "../../lib/api.js";
 import CategoriesList from "../../components/CategoriesList";
 
 export default function CategoriesPage() {

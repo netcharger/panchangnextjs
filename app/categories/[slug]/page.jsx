@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchPostsByCategory, fetchCategories } from "../../../lib/api";
+import { fetchPostsByCategory, fetchCategories } from "../../../lib/api.js";
 import PostsGrid from "../../../components/PostsGrid";
 import { useParams } from "next/navigation";
 
