@@ -42,8 +42,8 @@ export default function DayProgressBar({ targetDate }) {
   }, [targetDate]);
 
   // SVG circle parameters
-  const size = 120;
-  const strokeWidth = 10;
+  const size = 100;
+  const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (progress / 100) * circumference;

@@ -16,22 +16,22 @@ import servicesData from '../../data/online-muhuthalu.json';
 const MuhurthamCard = ({ service, onClick }) => (
   <div 
     onClick={() => onClick(service)}
-    className="bg-white   shadow-sm border border-orange-100 p-2 flex flex-col items-center text-center transition-all hover:shadow-md cursor-pointer h-full active:scale-85"
+    className="bg-white shadow-sm border border-orange-100 p-3 flex flex-col items-center text-center transition-all hover:shadow-md cursor-pointer h-full active:scale-85"
   >
     {/* Image Section */}
-    <div className="w-16 h-16  overflow-hidden mb-2 shrink-0 border-2 border-orange-100 shadow-sm relative">
+    <div className="w-24 h-24 overflow-hidden mb-3 shrink-0 border-2 border-orange-100 shadow-sm relative">
       <Image 
         src={service.image} 
         alt={service.title}
         fill
-        sizes="64px"
+        sizes="96px"
         className="object-cover"
       />
     </div>
     
     {/* Title Section */}
-    <div className="flex-grow flex items-center justify-center w-full min-h-[36px]">
-      <h3 className="text-gray-800 font-bold text-[11px] leading-tight px-0.5">
+    <div className="flex-grow flex items-center justify-center w-full min-h-[40px]">
+      <h3 className="text-gray-800 font-bold text-[13px] leading-tight px-0.5">
         {service.title}
       </h3>
     </div>
@@ -116,7 +116,7 @@ const DetailModal = ({ isOpen, onClose, service }) => {
             <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-90"> ముహూర్తం  పెట్టడానికి కాల్ చేయండి</p>
             <div className="flex items-center justify-center space-x-2">
               <FaPhoneAlt className="animate-bounce" />
-              <a href="tel:8956562232" className="text-xl font-black tracking-tighter">8956562232</a>
+              <a href="tel:919494288900" className="text-xl font-black tracking-tighter">9494288900</a>
             </div>
           </div>
         </div>

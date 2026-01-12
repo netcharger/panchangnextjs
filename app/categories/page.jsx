@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchCategories } from "../../lib/api";
@@ -40,6 +40,13 @@ export default function CategoriesPage() {
     setSelectedCategory(category);
   };
 
+  // Auto-select first category when categories load
+  useEffect(() => {
+    if (parentCategories.length > 0 && !selectedCategory) {
+      setSelectedCategory(parentCategories[0]);
+    }
+  }, [parentCategories, selectedCategory]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
       {/* Top Navigation Bar */}
@@ -66,26 +73,7 @@ export default function CategoriesPage() {
         {/* Left Sidebar - Main Categories */}
         <div className="w-24 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto" style={{ height: 'calc(100vh - 80px)' }}>
           <div className="py-2">
-            {/* All Category */}
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`w-full py-4 px-2 flex flex-col items-center gap-2 transition-colors ${
-                selectedCategory === null
-                  ? "bg-green-50 border-l-4 border-green-500"
-                  : "hover:bg-gray-50"
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                selectedCategory === null ? "bg-green-500" : "bg-gray-200"
-              }`}>
-                <span className="text-white text-lg">📋</span>
-              </div>
-              <span className={`text-xs font-medium ${
-                selectedCategory === null ? "text-green-600" : "text-gray-600"
-              }`}>
-                All
-              </span>
-            </button>
+
 
             {/* Category Items */}
             {categoriesLoading ? (
@@ -153,43 +141,21 @@ export default function CategoriesPage() {
         <div className="flex-1 overflow-y-auto bg-gray-50" style={{ height: 'calc(100vh - 80px)' }}>
           {/* Promotional Banner */}
           {!selectedCategory && (
-            <div className="relative mx-4 mt-4 mb-6 h-32 rounded-xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600">
-                <div className="absolute inset-0 bg-black/10"></div>
-              </div>
-              <div className="relative h-full flex flex-col justify-center px-6">
-                <h2 className="text-2xl font-bold text-white mb-1">Explore Categories</h2>
-                <p className="text-sm text-white/90">Select a category to view subcategories</p>
-              </div>
+            <div className="mx-4 mt-4 mb-6 p-6 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+              <h2 className="text-2xl font-bold text-green-800 mb-1">Explore Categories</h2>
+              <p className="text-sm text-green-700/80">Select a category to view subcategories</p>
             </div>
           )}
 
           {/* Selected Category Banner */}
           {selectedCategory && (
-            <div className="relative mx-4 mt-4 mb-6 h-32 rounded-xl overflow-hidden">
-              {(selectedCategory.category_image || selectedCategory.image) ? (
-                <>
-                  <Image
-                    src={getImageSize(selectedCategory.category_image || selectedCategory.image, "category", "medium")}
-                    alt={selectedCategory.name || selectedCategory.title}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                </>
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600">
-                  <div className="absolute inset-0 bg-black/10"></div>
-                </div>
+            <div className="mx-4 mt-4 mb-6 p-6 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+              <h2 className="text-2xl font-bold text-green-800 mb-1">
+                {selectedCategory.name || selectedCategory.title}
+              </h2>
+              {selectedCategory.description && (
+                <p className="text-sm text-green-700/80 line-clamp-2">{selectedCategory.description}</p>
               )}
-              <div className="relative h-full flex flex-col justify-center px-6">
-                <h2 className="text-2xl font-bold text-white mb-1">
-                  {selectedCategory.name || selectedCategory.title}
-                </h2>
-                {selectedCategory.description && (
-                  <p className="text-sm text-white/90 line-clamp-2">{selectedCategory.description}</p>
-                )}
-              </div>
             </div>
           )}
 
@@ -267,9 +233,7 @@ export default function CategoriesPage() {
                             {subCategory.description}
                           </p>
       )}
-                        <button className="w-full py-2 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors active:scale-95">
-                          View
-                        </button>
+
                       </div>
                     </Link>
                   );

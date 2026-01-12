@@ -1,0 +1,51 @@
+<svg width="48" height="48" viewBox="0 0 100 100"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Horizon -->
+  <line x1="10" y1="62" x2="90" y2="62"
+        stroke="#37474F"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Stars -->
+  <g fill="#90CAF9" opacity="0">
+    <circle cx="28" cy="26" r="1.6">
+      <animate attributeName="opacity"
+               from="0" to="1"
+               dur="0.4s"
+               begin="moonrise.begin+0.6s"
+               fill="freeze"/>
+    </circle>
+
+    <circle cx="70" cy="22" r="1.2">
+      <animate attributeName="opacity"
+               from="0" to="1"
+               dur="0.4s"
+               begin="moonrise.begin+1.0s"
+               fill="freeze"/>
+    </circle>
+
+    <circle cx="58" cy="34" r="1">
+      <animate attributeName="opacity"
+               from="0" to="1"
+               dur="0.4s"
+               begin="moonrise.begin+1.4s"
+               fill="freeze"/>
+    </circle>
+  </g>
+
+  <!-- Moon -->
+  <path d="M46 72 A14 14 0 1 1 60 58 A10 10 0 1 0 46 72"
+        fill="#90CAF9">
+    <animateTransform
+      id="moonrise"
+      attributeName="transform"
+      type="translate"
+      from="0 18"
+      to="0 -6"
+      dur="2.2s"
+      begin="0s;moonrise.end+30s"
+      fill="freeze"/>
+  </path>
+
+</svg>

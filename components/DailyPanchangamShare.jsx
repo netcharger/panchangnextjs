@@ -44,7 +44,36 @@ export default function DailyPanchangamShare({ data, date }) {
   const sunMoonSection = findSection(data.sections, "సూర్య చంద్రోదయాలు");
   const panchangamSection = findSection(data.sections, "మూల పంచాంగం");
   const auspiciousSection = findSection(data.sections, "శుభ సమయాలు");
-  const inauspiciousSection = findSection(data.sections, "అశుభ సమయాలు");
+  
+  // Collect inauspicious timings by scanning all items across all sections
+  const mergedInauspiciousItems = [];
+  data.sections?.forEach(section => {
+    section.items?.forEach(item => {
+      // Basic type detection for share (inline if needed or from label)
+      const labelLower = (item.label || "").toLowerCase();
+      const isInauspicious = ['రాహు', 'rahu', 'యమ', 'yama', 'గులిక', 'gulika', 'దుర్ముహూర్త', 'durmuhurtham', 'వర్జ్య', 'vargyam'].some(keyword => labelLower.includes(keyword));
+      
+      if (isInauspicious) {
+        const val = String(item.value || "").trim();
+        const isPlaceholder = !val || val.toLowerCase() === "none" || val.toLowerCase() === "n/a";
+        
+        const existingIdx = mergedInauspiciousItems.findIndex(existing => existing.label === item.label);
+        
+        if (existingIdx === -1) {
+          if (!isPlaceholder) {
+            mergedInauspiciousItems.push(item);
+          }
+        } else if (!isPlaceholder) {
+          mergedInauspiciousItems[existingIdx] = item;
+        }
+      }
+    });
+  });
+
+  const inauspiciousSection = {
+    title: "అశుభ సమయాలు",
+    items: mergedInauspiciousItems
+  };
 
   // Items
   const sunriseItem = findItem(sunMoonSection, "సూర్యోదయం");
@@ -97,12 +126,16 @@ export default function DailyPanchangamShare({ data, date }) {
   };
 
   const TimeRowShare = ({ label, value, isGood }) => (
-    <div className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">
+    <div className="flex items-start justify-between py-1.5 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-2">
          <div className={`w-1 h-1 rounded-full ${isGood ? 'bg-green-500' : 'bg-red-500'}`}></div>
          <span className="text-xs font-semibold text-gray-700">{label}</span>
       </div>
-      <span className="text-xs font-bold text-gray-900">{value}</span>
+      <div className="text-xs font-bold text-gray-900 text-right">
+        {value.split('|').map((part, pIdx) => (
+          <div key={pIdx}>{part.trim()}</div>
+        ))}
+      </div>
     </div>
   );
 
@@ -211,7 +244,7 @@ export default function DailyPanchangamShare({ data, date }) {
                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Avoid Times
                   </h3>
                   <div>
-                     {inauspiciousSection.items.slice(0, 4).map((item, i) => (
+                     {inauspiciousSection.items.slice(0, 6).map((item, i) => (
                         <TimeRowShare key={i} label={item.label} value={item.value} isGood={false} />
                      ))}
                   </div>

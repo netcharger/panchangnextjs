@@ -1,19 +1,25 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaHome, FaCalendarAlt, FaThList, FaImages, FaBell, FaHandsHelping } from "react-icons/fa";
+import { FaHome, FaCalendarAlt, FaThList, FaImages, FaBell, FaHandsHelping, FaSun } from "react-icons/fa";
 import clsx from "clsx";
 
 export default function Footer() {
   const pathname = usePathname();
+  const [todayDateStr, setTodayDateStr] = React.useState("");
+
+  React.useEffect(() => {
+    setTodayDateStr(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const menuItems = [
-
-    { icon: FaCalendarAlt, label: "Calendar", path: "/calendar" },
-    { icon: FaThList, label: "Categories", path: "/categories" },
-    { icon: FaHandsHelping, label: "Services", path: "/online-muhurthalu" },
-    { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
+    { icon: FaSun, label: "నేడు", path: todayDateStr ? `/day/${todayDateStr}` : "/" },
+    { icon: FaCalendarAlt, label: "క్యాలెండర్", path: "/calendar" },
+    { icon: FaThList, label: "విభాగాలు", path: "/categories" },
+    { icon: FaHandsHelping, label: "సేవలు", path: "/online-muhurthalu" },
+    { icon: FaImages, label: "వాల్‌పేపర్స్", path: "/wallpapers" },
   ];
 
   const isActive = (path) => {

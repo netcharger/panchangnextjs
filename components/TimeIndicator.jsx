@@ -256,28 +256,34 @@ export default function TimeIndicator({ events = [], dateStr }) {
   let upcomingEvent = null;
   
   for (const event of events) {
-    const timeRange = parseTimeRange(event.value, dateStr);
-    if (!timeRange) continue;
+    const value = event.value || "";
+    const ranges = value.split('|');
     
-    // Check if currently active
-    if (now.isAfter(timeRange.start) && now.isBefore(timeRange.end)) {
-      // Use isInauspicious flag if available, otherwise determine from event type
-      const eventType = event.type || detectEventType(event.label);
-      activeIsInauspicious = event.isInauspicious !== undefined 
-        ? event.isInauspicious 
-        : ['rahu', 'yama', 'gulika', 'durmuhurtham'].includes(eventType);
-      activeEvent = { ...event, type: eventType };
-      break; // Show only the first active event
-    }
-    
-    // Check if upcoming (within next 2 hours)
-    if (!upcomingEvent && now.isBefore(timeRange.start)) {
-      const timeUntilStart = timeRange.start.diff(now);
-      const twoHours = 2 * 60 * 60 * 1000;
-      if (timeUntilStart <= twoHours && timeUntilStart > 0) {
-        upcomingEvent = { ...event, type: event.type || detectEventType(event.label) };
+    for (const range of ranges) {
+      const timeRange = parseTimeRange(range.trim(), dateStr);
+      if (!timeRange) continue;
+      
+      // Check if currently active
+      if (now.isAfter(timeRange.start) && now.isBefore(timeRange.end)) {
+        // Use isInauspicious flag if available, otherwise determine from event type
+        const eventType = event.type || detectEventType(event.label);
+        activeIsInauspicious = event.isInauspicious !== undefined 
+          ? event.isInauspicious 
+          : ['rahu', 'yama', 'gulika', 'durmuhurtham', 'vargyam'].includes(eventType);
+        activeEvent = { ...event, value: range.trim(), type: eventType };
+        break; // Show only the first active event found
+      }
+      
+      // Check if upcoming (within next 2 hours)
+      if (!upcomingEvent && now.isBefore(timeRange.start)) {
+        const timeUntilStart = timeRange.start.diff(now);
+        const twoHours = 2 * 60 * 60 * 1000;
+        if (timeUntilStart <= twoHours && timeUntilStart > 0) {
+          upcomingEvent = { ...event, value: range.trim(), type: event.type || detectEventType(event.label) };
+        }
       }
     }
+    if (activeEvent) break;
   }
   
   // Show active event first, then upcoming

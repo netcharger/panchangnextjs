@@ -9,6 +9,8 @@ import DayProgressBar from "./DayProgressBar";
 import { getFixedTimingsForDay } from "../lib/inauspiciousTimings";
 import { sendToNative } from "../lib/webviewBridge";
 import DailyPanchangamShare from "./DailyPanchangamShare";
+import MoonPhase from "./MoonPhase";
+import EventProgress from "./EventProgress";
 
 // Telugu day names mapping
 const teluguDays = {
@@ -47,20 +49,45 @@ const findItem = (section, label) => {
   return section?.items?.find(item => item.label === label);
 };
 
+// Helper to convert time to Telugu format with shorthands
+const toTeluguTime = (timeStr) => {
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return timeStr;
+  
+  let [_, hourStr, min, period] = match;
+  let hour = parseInt(hourStr);
+  const isPM = period.toUpperCase() === 'PM';
+  
+  // 24-hour conversion for logic
+  let hour24 = hour;
+  if (isPM && hour !== 12) hour24 += 12;
+  if (!isPM && hour === 12) hour24 = 0;
+  
+  // Determine prefix based on time of day
+  // 04:00 to 11:59 -> ఉ (Udayam)
+  // 12:00 to 15:59 -> మ (Madhyahnam)
+  // 16:00 to 18:59 -> సా (Sayam)
+  // 19:00 to 03:59 -> రా (Ratri)
+  let prefix = "రా"; 
+  if (hour24 >= 4 && hour24 < 12) prefix = "ఉ";
+  else if (hour24 >= 12 && hour24 < 16) prefix = "మ";
+  else if (hour24 >= 16 && hour24 < 19) prefix = "సా";
+  
+  return `${prefix} ${hourStr}:${min}`;
+};
+
 // Helper function to format time from event
 const formatEventTime = (event) => {
   if (!event) return "";
-  const startTime = event.start || "";
   const endTime = event.end || "";
 
   // Extract time from "Dec 25 12:00 AM" format
-  const startMatch = startTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/);
-  const endMatch = endTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/);
+  const endMatch = endTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
 
-  if (startMatch && endMatch) {
-    return `${startMatch[1]} నుండి ${endMatch[1]}`;
+  if (endMatch) {
+    return `${toTeluguTime(endMatch[1])} వరకు`;
   }
-  return startTime;
+  return endTime;
 };
 
 // Helper function to get current event from event_list
@@ -87,7 +114,7 @@ const detectEventType = (label) => {
   if (labelLower.includes('యమ') || labelLower.includes('yama')) return 'yama';
   if (labelLower.includes('గులిక') || labelLower.includes('గుళిక') || labelLower.includes('gulika')) return 'gulika';
   if (labelLower.includes('దుర్ముహూర్త') || labelLower.includes('durmuhurtham')) return 'durmuhurtham';
-  if (labelLower.includes('వర్జ్యం') || labelLower.includes('vargyam')) return 'vargyam';
+  if (labelLower.includes('వర్జ్య') || labelLower.includes('vargyam')) return 'vargyam';
   if (labelLower.includes('అభిజిత్') || labelLower.includes('abhijit')) return 'abhijit';
   if (labelLower.includes('అమృత') || labelLower.includes('amrit')) return 'amrit';
   if (labelLower.includes('బ్రహ్మ') || labelLower.includes('brahma')) return 'brahma';
@@ -293,7 +320,42 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   const sunMoonSection = findSection(data.sections, "సూర్య చంద్రోదయాలు");
   const panchangamSection = findSection(data.sections, "మూల పంచాంగం");
   const auspiciousSection = findSection(data.sections, "శుభ సమయాలు");
-  const inauspiciousSection = findSection(data.sections, "అశుభ సమయాలు");
+  // Collect inauspicious timings by scanning all items across all sections
+  // This is more robust than matching section titles
+  const mergedInauspiciousItems = [];
+  data.sections?.forEach(section => {
+    section.items?.forEach(item => {
+      const type = detectEventType(item.label);
+      if (['rahu', 'yama', 'gulika', 'durmuhurtham', 'vargyam'].includes(type)) {
+        console.log(`🔎 Found potential inauspicious item: ${item.label} = ${item.value} (Type: ${type})`);
+        
+        const val = String(item.value || "").trim();
+        const isPlaceholder = !val || val.toLowerCase() === "none" || val.toLowerCase() === "n/a";
+        
+        const existingIdx = mergedInauspiciousItems.findIndex(existing => existing.label === item.label);
+        
+        if (existingIdx === -1) {
+          if (!isPlaceholder) {
+            console.log(`✅ Adding ${item.label} to merged list`);
+            mergedInauspiciousItems.push(item);
+          } else {
+            console.log(`⚠️ Skipping placeholder for ${item.label}`);
+          }
+        } else if (!isPlaceholder) {
+          console.log(`♻️ Overwriting ${item.label} placeholder with real value: ${val}`);
+          mergedInauspiciousItems[existingIdx] = item;
+        }
+      }
+    });
+  });
+  
+  console.log('📦 Merged Inauspicious Items Total:', mergedInauspiciousItems.length);
+
+  const inauspiciousSection = {
+    title: "అశుభ సమయాలు",
+    items: mergedInauspiciousItems
+  };
+
   const festivalsSection = findSection(data.sections, "పండుగలు");
 
   // Debug logging
@@ -349,6 +411,8 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
 
   // Prepare events for TimeIndicator (combine auspicious and inauspicious)
   const dateStr = data.date || (date ? (typeof date === 'string' ? date : date.toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]);
+  const isToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) === dateStr;
+
   const allEvents = [
     ...(auspiciousSection?.items || []).map(item => ({
       ...item,
@@ -363,7 +427,21 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
     }))
   ];
   const summary = findItem(traditionalPanchangamSection, "సారాంశం").value
-  const summary_array = summary.split(';')
+  const summary_array = summary.split(';');
+
+  // Determine dynamic year name based on Ugadi dates
+  const yearName = (() => {
+    const ugadiDates = [
+      { start: "2025-03-30", end: "2026-03-18", name: "శ్రీ విశ్వావసు నామ సంవత్సరం" },
+      { start: "2026-03-19", end: "2027-04-06", name: "శ్రీ పరాభవ నామ సంవత్సరం" },
+      { start: "2027-04-07", end: "2028-03-26", name: "శ్రీ ప్లవంగ నామ సంవత్సరం" },
+      { start: "2028-03-27", end: "2029-03-16", name: "శ్రీ కీలక నామ సంవత్సరం" } 
+    ];
+    // Date comparison using ISO string part YYYY-MM-DD
+    const currentDateStr = dateObj.toLocaleDateString('en-CA'); // YYYY-MM-DD local time
+    const yearInfo = ugadiDates.find(y => currentDateStr >= y.start && currentDateStr <= y.end);
+    return yearInfo ? yearInfo.name : summary_array[0];
+  })();
   return (
     <div ref={contentRef} className="space-y-4 animate-fade-in p-1">
       {/* Top Section - Date and Navigation */}
@@ -405,7 +483,7 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
           {traditionalPanchangamSection && findItem(traditionalPanchangamSection, "సారాంశం") && (
             <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-orange-100/50 text-center mb-6">
               <div className="text-orange-700 font-bold text-lg mb-2 tracking-wide font-telugu">
-                {summary_array[0]}
+                {yearName}
               </div>
               <div className="text-gray-600 text-sm leading-relaxed font-medium">
                 {summary_array.slice(1).join(" • ")}
@@ -423,11 +501,9 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
           <div className="grid grid-cols-2 gap-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-xl p-4 border border-orange-100/50">
              {/* Sunrise */}
              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shadow-sm">
-                  <FaSun size={16} />
-                </div>
+                <img src="/icons/sunrise.svg" alt="Sunrise" className="w-10 h-10 object-contain drop-shadow-sm" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-orange-900/60 font-bold uppercase tracking-wide">సూర్యోదయం</span>
+                  <span className="text-xs text-orange-900/60 font-bold uppercase tracking-wide">సూర్యోదయం</span>
                   <span className="text-gray-800 font-bold text-sm">{sunriseItem?.value || "-"}</span>
                 </div>
              </div>
@@ -435,21 +511,17 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
              {/* Sunset */}
              <div className="flex items-center gap-3 justify-end">
                 <div className="flex flex-col text-right">
-                  <span className="text-[10px] text-orange-900/60 font-bold uppercase tracking-wide">సూర్యాస్తమయం</span>
+                  <span className="text-xs text-orange-900/60 font-bold uppercase tracking-wide">సూర్యాస్తమయం</span>
                   <span className="text-gray-800 font-bold text-sm">{sunsetItem?.value || "-"}</span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 shadow-sm">
-                  <FaSun size={16} />
-                </div>
+                <img src="/icons/sunset.svg" alt="Sunset" className="w-10 h-10 object-contain drop-shadow-sm" />
              </div>
 
              {/* Moonrise */}
              <div className="flex items-center gap-3 pt-2 border-t border-orange-200/50">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm">
-                  <FaMoon size={14} />
-                </div>
+                <img src="/icons/moonrise.svg" alt="Moonrise" className="w-10 h-10 object-contain drop-shadow-sm" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రోదయం</span>
+                  <span className="text-xs text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రోదయం</span>
                   <span className="text-gray-800 font-bold text-sm">{moonriseItem?.value || "-"}</span>
                 </div>
              </div>
@@ -457,31 +529,31 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
              {/* Moonset */}
              <div className="flex items-center gap-3 justify-end pt-2 border-t border-orange-200/50">
                 <div className="flex flex-col text-right">
-                  <span className="text-[10px] text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రాస్తమయం</span>
+                  <span className="text-xs text-indigo-900/60 font-bold uppercase tracking-wide">చంద్రాస్తమయం</span>
                   <span className="text-gray-800 font-bold text-sm">{moonsetItem?.value || "-"}</span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 shadow-sm">
-                  <FaMoon size={14} />
-                </div>
+                <img src="/icons/moonset.svg" alt="Moonset" className="w-10 h-10 object-contain drop-shadow-sm" />
              </div>
           </div>
         </div>
       </div>
 
       {/* Day Progress Bar and Countdown Timer - Side by Side */}
-      <div className="glass rounded-xl p-4 shadow-soft border border-white/50 bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="flex flex-row gap-4 items-center">
-          <div className="flex-1 flex justify-center">
-            <DayProgressBar targetDate={dateStr} />
-          </div>
-          <div className="flex-1">
-            <CountdownTimer targetDate={dateStr} />
+      {isToday && (
+        <div className="glass rounded-xl p-4 shadow-soft border border-white/50 bg-gradient-to-br from-indigo-50 to-purple-50">
+          <div className="flex flex-row gap-4 items-center">
+            <div className="flex-1 flex justify-center">
+              <DayProgressBar targetDate={dateStr} />
+            </div>
+            <div className="flex-1">
+              <CountdownTimer targetDate={dateStr} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Time Indicator - Active/Upcoming Events */}
-      <TimeIndicator events={allEvents} dateStr={dateStr} />
+      {isToday && <TimeIndicator events={allEvents} dateStr={dateStr} />}
 
       {/* Astro Grid - Key Panchangam Details */}
       <h3 className="text-lg font-bold text-gray-800 ml-2 mt-6 mb-3 flex items-center gap-2">
@@ -490,7 +562,18 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
       </h3>
       
       <div className="grid grid-cols-2 gap-4">
-        <AstroCardImproved icon="🌙" title="తిథి" value={currentTithi?.name} time={currentTithi ? formatEventTime(currentTithi) : ""} color="indigo" />
+        {(() => {
+          const currentPaksham = lunarMonthSection ? findItem(lunarMonthSection, "పక్షం")?.value : "";
+          return (
+            <AstroCardImproved 
+              icon={<div className="transform scale-125"><MoonPhase tithiName={currentTithi?.name} paksham={currentPaksham} size={40} /></div>} 
+              title="తిథి" 
+              value={currentTithi?.name} 
+              time={currentTithi ? formatEventTime(currentTithi) : ""} 
+              color="indigo" 
+            />
+          );
+        })()}
         <AstroCardImproved icon="⭐" title="నక్షత్రం" value={currentNakshatram?.name} time={currentNakshatram ? formatEventTime(currentNakshatram) : ""} color="purple" />
         <AstroCardImproved icon="🧘" title="యోగం" value={currentYogam?.name} time={currentYogam ? formatEventTime(currentYogam) : ""} color="teal" />
         <AstroCardImproved icon="🐾" title="కరణం" value={currentKaranam?.name} time={currentKaranam ? formatEventTime(currentKaranam) : ""} color="rose" />
@@ -555,16 +638,47 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
 
  
       {/* Share Button (Sticky Bottom) */}
-      <div className="fixed bottom-20 left-0 right-0 z-40 flex justify-center pointer-events-none fade-in-up">
+      <div className="fixed bottom-28 left-0 right-0 z-40 flex justify-center pointer-events-none fade-in-up">
         <button 
           onClick={handleShare}
           disabled={isSharing}
-          className={`pointer-events-auto flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full shadow-xl shadow-orange-900/20 hover:scale-105 active:scale-95 transition-all font-bold text-lg border-2 border-orange-400/50 ${isSharing ? 'opacity-75 cursor-wait' : ''}`}
+          className={`pointer-events-auto flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full shadow-lg shadow-orange-900/20 hover:scale-105 active:scale-95 transition-all font-bold text-sm border border-orange-400/50 ${isSharing ? 'opacity-75 cursor-wait' : ''}`}
         >
-          <FaWhatsapp size={22} className="animate-pulse" />
+          <FaWhatsapp size={18} className="animate-pulse" />
           <span>Share Panchangam</span>
         </button>
       </div>
+
+      {/* Active Inauspicious Events Progress */}
+      {(() => {
+         // Filter for active inauspicious events
+         // We need a way to check if an event is active without duplicating logic too much.
+         // Ideally EventProgress checks itself, but we need to know IF there are any to render the container.
+         // For now, let's just render the container and let EventProgress handle its own visibility? 
+         // No, better to filter here so we don't render empty containers.
+         // Actually, let's just pass all inauspicious events to a container and map them.
+         // The issue is we don't have the parsing logic exposed here easily without duplicating.
+         // Let's assume we want to show ALL inauspicious items found in `inauspiciousSection`.
+         // We can map them all and let EventProgress decide if it should render (it returns null if not active).
+         // However, this might clutter if we have many.
+         // Let's try to map them.
+      })()}
+      
+      {inauspiciousSection && inauspiciousSection.items && inauspiciousSection.items.length > 0 && isToday && (
+         <div className="flex flex-wrap justify-center gap-4 mb-4">
+            {inauspiciousSection.items.map((item, idx) => {
+               const value = getFixedValue(item.label, item.value);
+               const ranges = value.split('|');
+               return ranges.map((range, rIdx) => (
+                  <EventProgress 
+                     key={`inauspicious-progress-${idx}-${rIdx}`} 
+                     event={{...item, value: range.trim()}} 
+                     dateStr={dateStr} 
+                  />
+               ));
+            })}
+         </div>
+      )}
 
       {/* Inauspicious Times Section */}
       {inauspiciousSection && inauspiciousSection.items && inauspiciousSection.items.length > 0 && (
@@ -799,13 +913,16 @@ function AstroCard({ title, value, time, gradient, icon }) {
 function TimeItem({ label, value, isInauspicious, onInfoClick }) {
   const showInfoIcon = ['rahu', 'yama', 'gulika', 'durmuhurtham', 'vargyam', 'abhijit', 'amrit', 'brahma', 'vijaya', 'godhuli', 'sandhya', 'nishita'].includes(detectEventType(label));
 
+  // Format value to use Telugu shorthands
+  const formattedValue = value ? value.replace(/(\d{1,2}:\d{2}\s*(?:AM|PM))/gi, (match) => toTeluguTime(match)) : value;
+
   return (
     <div className={`p-3 rounded-lg border ${
       isInauspicious
         ? "bg-red-50 border-red-200/50"
         : "bg-green-50 border-green-200/50"
     }`}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-indigo-700">{label}</span>
           {showInfoIcon && (
@@ -820,11 +937,13 @@ function TimeItem({ label, value, isInauspicious, onInfoClick }) {
             </button>
           )}
         </div>
-        <span className={`text-sm font-semibold ${
+        <div className={`text-sm font-semibold text-right ${
           isInauspicious ? "text-red-600" : "text-green-600"
         }`}>
-          {value}
-        </span>
+          {formattedValue.split('|').map((part, pIdx) => (
+            <div key={pIdx}>{part.trim()}</div>
+          ))}
+        </div>
       </div>
     </div>
   );

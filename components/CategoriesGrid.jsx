@@ -24,38 +24,14 @@ export default function CategoriesGrid({ categories = [], limit = 4 }) {
             key={parent.id}
             className="glass rounded-xl overflow-hidden shadow-soft mb-5 border border-white/50 hover:shadow-lg transition-all duration-200"
           >
-            {/* Parent Category Header */}
-            <Link
-              href={parent.slug ? `/categories/${parent.slug}` : '/categories'}
-              className="group block"
-            >
-              <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100">
-                {parentImageUrl ? (
-                  <Image
-                    src={getImageSize(parentImageUrl, "category", "medium")}
-                    alt={parent.name || parent.title}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    className="group-hover:scale-110 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-saffron-200 to-indigo-200">
-                    <span className="text-4xl text-indigo-600">📿</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-bold text-lg drop-shadow-lg">
-                    {parent.name || parent.title}
-                  </h3>
-                  {parent.description && (
-                    <p className="text-white/90 text-xs mt-1 line-clamp-1 drop-shadow-md">
-                      {parent.description}
-                    </p>
-                  )}
-                </div>
+ 
+              <div className="px-4 py-3 bg-gradient-to-r from-saffron-50 to-indigo-50 border-b border-white/50">
+                <h3 className="text-indigo-900 font-bold   text-sm ">
+                   {parent.name || parent.title}
+                </h3>
+       
               </div>
-            </Link>
+     
 
             {/* Subcategories Grid */}
             {children.length > 0 && (
@@ -92,7 +68,7 @@ export default function CategoriesGrid({ categories = [], limit = 4 }) {
                           </div>
 
                           {/* Subcategory Name */}
-                          <div className="p-2 text-center min-h-[40px] flex items-center justify-center">
+                          <div className="text-center min-h-[40px] flex items-center justify-center">
                             <h4 className="text-xs font-semibold text-indigo-700 group-hover:text-saffron-600 transition-colors line-clamp-2">
                               {child.name || child.title}
                             </h4>

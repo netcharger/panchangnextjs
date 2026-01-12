@@ -62,7 +62,7 @@ export default function CountdownTimer({ targetDate }) {
 function TimeUnit({ value, label }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="text-2xl font-bold text-indigo-700 bg-white rounded-lg px-3 py-2 min-w-[50px] text-center shadow-sm">
+      <div className="text-xl font-bold text-indigo-700 bg-white rounded-lg px-2 py-2 min-w-[40px] text-center shadow-sm">
         {String(value).padStart(2, '0')}
       </div>
       <div className="text-xs text-indigo-500 mt-1">{label}</div>
@@ -73,7 +73,7 @@ function TimeUnit({ value, label }) {
 function Separator() {
   return (
     <div className="flex flex-col items-center justify-center pb-6">
-      <span className="text-2xl font-bold text-indigo-400">:</span>
+      <span className="text-xl font-bold text-indigo-400">:</span>
     </div>
   );
 }

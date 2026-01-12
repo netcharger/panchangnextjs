@@ -1,0 +1,44 @@
+<svg width="48" height="48" viewBox="0 0 100 100"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Horizon -->
+  <line x1="10" y1="62" x2="90" y2="62"
+        stroke="#5D4037"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Sun -->
+  <circle cx="50" cy="74" r="14"
+          fill="#F57C00">
+    <animate
+      id="sunrise"
+      attributeName="cy"
+      from="74"
+      to="50"
+      dur="2s"
+      begin="0s;sunrise.end+30s"
+      fill="freeze"/>
+  </circle>
+
+  <!-- Sun Rays (Hands) -->
+  <g stroke="#F57C00"
+     stroke-width="3"
+     stroke-linecap="round"
+     opacity="0">
+
+    <line x1="50" y1="22" x2="50" y2="10"/>
+    <line x1="32" y1="28" x2="22" y2="18"/>
+    <line x1="68" y1="28" x2="78" y2="18"/>
+    <line x1="26" y1="44" x2="14" y2="44"/>
+    <line x1="74" y1="44" x2="86" y2="44"/>
+
+    <animate
+      attributeName="opacity"
+      from="0"
+      to="1"
+      dur="0.8s"
+      begin="sunrise.begin+1.2s"
+      fill="freeze"/>
+  </g>
+
+</svg>
