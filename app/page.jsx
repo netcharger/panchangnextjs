@@ -398,28 +398,6 @@ export default function Home() {
         <AshtaSiddhantaWidget />
       </div>
 
-      {/* Quick Links Grid */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-indigo-700 mb-4 px-1">Quick Access</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {quickLinks.map((link, index) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={index}
-                href={link.href}
-                className="glass rounded-2xl p-5 shadow-soft border border-white/50 hover:shadow-lg active:scale-95 transition-all duration-200 group"
-              >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform duration-200`}>
-                  <Icon className="text-white" size={20} />
-                </div>
-                <h4 className="text-base font-semibold text-indigo-700 mb-1">{link.title}</h4>
-                <p className="text-xs text-indigo-500">{link.description}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Categories Section */}
       <div className="mb-6" suppressHydrationWarning>
@@ -477,30 +455,6 @@ export default function Home() {
         ) : null}
       </div>
 
-      {/* Today's Highlights */}
-      <div className="glass rounded-2xl p-6 shadow-soft border border-white/50">
-        <h3 className="text-lg font-bold text-indigo-700 mb-4">Today's Highlights</h3>
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-saffron-50 to-indigo-50 border border-saffron-100">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-saffron-400 to-saffron-500 flex items-center justify-center flex-shrink-0">
-              <FaStar className="text-white" size={14} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-indigo-700">Auspicious Day</p>
-              <p className="text-xs text-indigo-500 mt-0.5">Today is a blessed day</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-indigo-500 flex items-center justify-center flex-shrink-0">
-              <FaMoon className="text-white" size={14} />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-indigo-700">Panchangam</p>
-              <p className="text-xs text-indigo-500 mt-0.5">Check today's details</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
 
     </div>

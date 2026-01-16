@@ -46,7 +46,6 @@ export default function Header() {
     { icon: FaThList, label: "Categories", path: "/categories" },
     { icon: FaHandsHelping, label: "Services", path: "/online-muhurthalu" },
     { icon: FaImages, label: "Wallpapers", path: "/wallpapers" },
-    { icon: FaUser, label: "Profile & Settings", path: "/settings" },
   ];
 
   const isActive = (path) => {

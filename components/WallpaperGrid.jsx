@@ -96,7 +96,7 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
         >
           {wallpapers.map((w, index) => {
             const imageUrl = w.image || w.image_url || w.thumb || "/icons/placeholder.png";
-            const thumbnailUrl = getImageSize(imageUrl, "thumb") || imageUrl;
+            const thumbnailUrl = getImageSize(imageUrl, "wallpapers", "medium") || imageUrl;
 
             return (
               <div
@@ -106,8 +106,8 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
               >
                 <div className="relative w-full">
                   <Image
-                    src={thumbnailUrl.replace("wallpapers/", "wallpapers/thumb/").replace(".jpg", ".webp")}
-                    alt={thumbnailUrl.replace("wallpapers/", "wallpapers/thumb/").replace(".jpg", ".webp")||w.title || w.name || "Wallpaper"}
+                    src={thumbnailUrl}
+                    alt={w.title || w.name || "Wallpaper"}
                     width={500}
                     height={700}
                     sizes="(max-width: 768px) 50vw, 50vw"
@@ -170,8 +170,7 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
     <>
       <div className="grid grid-cols-2 gap-3">
         {wallpapers.map((w, index) => {
-          const imageUrl = w.image || w.image_url || w.thumb || "/icons/placeholder.png";
-          const thumbnailUrl = getImageSize(imageUrl, "wallpaper", "thumb") || imageUrl;
+          const thumbnailUrl = getImageSize(imageUrl, "wallpapers", "medium") || imageUrl;
 
             return (
             <div
@@ -180,8 +179,8 @@ export default function WallpaperGrid({ wallpapers = [], masonry = false }) {
               className="group relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
             >
               <Image
-                src={thumbnailUrl.replace("wallpapers/", "wallpapers/thumb/").replace(".jpg", ".webp")}
-                alt={thumbnailUrl.replace("wallpapers/", "wallpapers/thumb/").replace(".jpg", ".webp")||w.title || w.name || "Wallpaper"}
+                src={thumbnailUrl}
+                alt={w.title || w.name || "Wallpaper"}
                 fill
                 style={{ objectFit: "cover" }}
                 className="group-hover:scale-110 transition-transform duration-300"

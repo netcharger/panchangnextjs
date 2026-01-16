@@ -336,16 +336,16 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         <div className="relative w-full h-full flex items-center justify-center p-4">
           {imageUrl ? (
             <img
-              src={thumbImageUrl}
+              src={mediumImageUrl}
               alt={imageCaption || "Wallpaper"}
               className={`max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain transition-opacity duration-300 ${
                 isTransitioning ? 'opacity-50' : 'opacity-100'
               }`}
               style={{ display: 'block' }}
               onError={(e) => {
-                console.error("Image load error:", thumbImageUrl);
+                console.error("Image load error:", mediumImageUrl);
                 if (e.target.src !== imageUrl) {
-                  e.target.src = imageUrl; // Fallback to full size if thumb fails
+                  e.target.src = imageUrl; // Fallback to full size if medium fails
                 }
               }}
             />
@@ -395,6 +395,8 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
             <span>{isDownloading ? "డౌన్లోడ్ అవుతుంది..." : "డౌన్లోడ్"}</span>
           </button>
 
+          {/* Hiding Set Wallpaper button for now as requested */}
+          {/* 
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -404,7 +406,8 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
           >
             <FaImage size={18} />
             <span>వాల్ పేపర్ సెట్</span>
-          </button>
+          </button> 
+          */}
         </div>
       </div>
     </div>
