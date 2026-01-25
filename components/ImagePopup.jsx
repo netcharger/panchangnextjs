@@ -67,7 +67,19 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
 
   // Get current wallpaper
   const currentWallpaper = allWallpapers[currentImageIndex] || image;
-  const imageUrl = currentWallpaper?.src || currentWallpaper?.image_file || currentWallpaper?.image || currentWallpaper?.image_url || currentWallpaper?.url || "";
+  let rawImageUrl = currentWallpaper?.src || currentWallpaper?.image_file || currentWallpaper?.image || currentWallpaper?.image_url || currentWallpaper?.url || "";
+  
+  // Ensure absolute URL for main image
+  if (rawImageUrl && typeof rawImageUrl === 'string') {
+    if (rawImageUrl.startsWith('/')) {
+      rawImageUrl = 'https://api.dailypanchangam.com' + rawImageUrl;
+    } else if (!rawImageUrl.startsWith('http') && !rawImageUrl.startsWith('data:')) {
+       // Handle other relative paths potentially
+       rawImageUrl = 'https://api.dailypanchangam.com/' + rawImageUrl;
+    }
+  }
+  const imageUrl = rawImageUrl;
+  
   const imageCaption = currentWallpaper?.caption || currentWallpaper?.title || currentWallpaper?.alt || currentWallpaper?.name || "";
 
   // Derive thumb and medium URLs if available
@@ -153,10 +165,12 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     setIsDownloading(true);
     try {
       let fullImageUrl = imageUrl;
+      
+      // Fix relative URLs to point to the Django backend
       if (imageUrl.startsWith("/")) {
-        fullImageUrl = window.location.origin + imageUrl;
+        fullImageUrl = 'https://api.dailypanchangam.com' + imageUrl;
       } else if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-        fullImageUrl = new URL(imageUrl, window.location.href).href;
+        fullImageUrl = 'https://api.dailypanchangam.com/' + imageUrl;
       }
 
       const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';
@@ -207,10 +221,18 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     if (!imageUrl) return;
     
     let fullImageUrl = imageUrl;
-    if (imageUrl.startsWith('/')) {
-      fullImageUrl = window.location.origin + imageUrl;
-    } else if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-      fullImageUrl = new URL(imageUrl, window.location.href).href;
+    
+    // Ensure we have a valid string
+    if (typeof fullImageUrl !== 'string') return;
+
+    // Fix relative URLs to point to the Django backend
+    if (fullImageUrl.startsWith('/')) {
+      // Use the Django backend URL for media files
+      // You can also use an env var here: process.env.NEXT_PUBLIC_DJANGO_BACKEND_URL
+      fullImageUrl = 'https://api.dailypanchangam.com' + fullImageUrl;
+    } else if (!fullImageUrl.startsWith('http://') && !fullImageUrl.startsWith('https://')) {
+      // If it's a relative path without leading slash (unlikely but possible)
+      fullImageUrl = 'https://api.dailypanchangam.com/' + fullImageUrl;
     }
     
     const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';
