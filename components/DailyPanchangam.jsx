@@ -55,41 +55,58 @@ const findItem = (section, label) => {
 
 // Helper to convert time to Telugu format with shorthands
 const toTeluguTime = (timeStr) => {
-  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-  if (!match) return timeStr;
-  
-  let [_, hourStr, min, period] = match;
-  let hour = parseInt(hourStr);
-  const isPM = period.toUpperCase() === 'PM';
-  
-  // 24-hour conversion for logic
-  let hour24 = hour;
-  if (isPM && hour !== 12) hour24 += 12;
-  if (!isPM && hour === 12) hour24 = 0;
+  // 1. Try AM/PM format
+  let match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  let hour, min;
+
+  if (match) {
+    let [_, hourStr, minStr, period] = match;
+    hour = parseInt(hourStr, 10);
+    min = minStr;
+    const isPM = period.toUpperCase() === 'PM';
+    if (isPM && hour !== 12) hour += 12;
+    if (!isPM && hour === 12) hour = 0;
+  } 
+  // 2. Try 24-hour format (HH:MM or HH:MM:SS)
+  else {
+    match = timeStr.match(/(\d{1,2}):(\d{2})/); // Ignore seconds for parsing logic
+    if (!match) return timeStr; // Return original if no time found
+    let [_, hourStr, minStr] = match;
+    hour = parseInt(hourStr, 10);
+    min = minStr;
+  }
   
   // Determine prefix based on time of day
   // 04:00 to 11:59 -> ఉ (Udayam)
   // 12:00 to 15:59 -> మ (Madhyahnam)
-  // 16:00 to 18:59 -> సా (Sayam)
-  // 19:00 to 03:59 -> రా (Ratri)
+  // 16:00 to 19:59 -> సా (Sayam)
+  // 20:00 to 03:59 -> రా (Ratri)
   let prefix = "రా"; 
-  if (hour24 >= 4 && hour24 < 12) prefix = "ఉ";
-  else if (hour24 >= 12 && hour24 < 16) prefix = "మ";
-  else if (hour24 >= 16 && hour24 < 19) prefix = "సా";
+  if (hour >= 4 && hour < 12) prefix = "ఉ";
+  else if (hour >= 12 && hour < 16) prefix = "మ";
+  else if (hour >= 16 && hour < 20) prefix = "సా"; // 4 PM to 8 PM is Sayam
   
-  return `${prefix} ${hourStr}:${min}`;
+  // Convert back to 12-hour format for display
+  let displayHour = hour % 12;
+  if (displayHour === 0) displayHour = 12;
+  
+  // Pad with leading zero
+  let displayHourStr = displayHour.toString().padStart(2, '0');
+  
+  return `${prefix} ${displayHourStr}:${min}`;
 };
 
 // Helper function to format time from event
 const formatEventTime = (event) => {
   if (!event) return "";
-  const endTime = event.end || "";
+  const endTime = event.end || ""; // Can be "YYYY-MM-DD HH:MM:SS" or just "HH:MM:SS" or "Dec 25..."
 
-  // Extract time from "Dec 25 12:00 AM" format
-  const endMatch = endTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+  // Look for any time pattern ( HH:MM or HH:MM:SS or HH:MM AM/PM )
+  // This regex matches: 12:30, 12:30:45, 12:30 PM, 12:30:45 AM
+  const timeMatch = endTime.toString().match(/(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[APap][Mm])?)/); 
 
-  if (endMatch) {
-    return `${toTeluguTime(endMatch[1])} వరకు`;
+  if (timeMatch) {
+    return `${toTeluguTime(timeMatch[1])} వరకు`;
   }
   return endTime;
 };
@@ -299,9 +316,16 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   }
 
   if (!data || !data.sections) {
+    console.warn('⚠️ DailyPanchangam: Data missing or invalid structure', { 
+      hasData: !!data, 
+      hasSections: !!data?.sections,
+      keys: data ? Object.keys(data) : [],
+      sampleSection: data?.sections ? data.sections[0] : 'N/A'
+    });
     return (
       <div className="glass rounded-2xl p-8 shadow-soft text-center border border-white/50">
         <p className="text-indigo-500">Loading panchangam details...</p>
+        {/* <p className="text-xs text-red-400 mt-2">{data ? "Invalid Data Structure" : "No Data"}</p> */}
       </div>
     );
   }
@@ -310,8 +334,9 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
   let dateObj;
   if (date) {
     if (typeof date === 'string') {
-      const [year, month, day] = date.split('-').map(Number);
-      dateObj = new Date(year, month - 1, day);
+      const parts = date.split('-').map(Number); // [2026, 2, 3] if 2026-02-03
+      // Note: Month is 0-indexed in Date constructor, so subtract 1
+      dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
     } else {
       dateObj = new Date(date);
     }
@@ -647,15 +672,13 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
           );
         })()}
         <AstroCardImproved icon="⭐" title="నక్షత్రం" value={currentNakshatram?.name} time={currentNakshatram ? formatEventTime(currentNakshatram) : ""} color="purple" />
-        <AstroCardImproved icon="🧘" title="యోగం" value={currentYogam?.name} time={currentYogam ? formatEventTime(currentYogam) : ""} color="teal" />
-        <AstroCardImproved icon="🐾" title="కరణం" value={currentKaranam?.name} time={currentKaranam ? formatEventTime(currentKaranam) : ""} color="rose" />
       </div>
 
       {/* Auspicious Times */}
       {/* Auspicious Times Section with View More */}
       {auspiciousSection && auspiciousSection.items && auspiciousSection.items.length > 0 && (
         <div className="glass rounded-2xl p-5 shadow-soft border border-white/50 mt-6">
-          <h3 className="text-lg font-bold text-pink-700 mb-4">శుభ సమయములు</h3>
+          <h3 className="text-lg font-bold text-green-700 mb-4">శుభ సమయములు</h3>
           <div className="space-y-3">
             {/* Show first 3 items */}
             {auspiciousSection.items.slice(0, 3).map((item, idx) => (
@@ -692,7 +715,7 @@ export default function DailyPanchangam({ data, date, onPrevDate, onNextDate }) 
             {auspiciousSection.items.length > 3 && (
               <button
                 onClick={() => setShowAllAuspicious(!showAllAuspicious)}
-                className="w-full mt-3 py-2 px-4 rounded-lg bg-gradient-to-r from-pink-50 to-orange-50 hover:from-pink-100 hover:to-orange-100 border border-pink-200/50 text-pink-700 font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 hover:shadow-md"
+                className="w-full mt-3 py-2 px-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border border-green-200/50 text-green-700 font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 hover:shadow-md"
               >
                 <span className={`transition-transform duration-300 ${showAllAuspicious ? 'rotate-180' : 'rotate-0'}`}>
                   {showAllAuspicious ? (

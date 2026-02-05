@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaTimes, FaDownload, FaImage, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { sendToNative } from "../lib/webviewBridge.js";
 import { getImageSize } from "../lib/image_sizes.js";
+import { DJANGO_BACKEND_URL } from "../lib/constants.js";
 import { Mallanna } from "next/font/google";
 
 const mallanna = Mallanna({
@@ -72,10 +73,10 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
   // Ensure absolute URL for main image
   if (rawImageUrl && typeof rawImageUrl === 'string') {
     if (rawImageUrl.startsWith('/')) {
-      rawImageUrl = 'https://api.dailypanchangam.com' + rawImageUrl;
+      rawImageUrl = DJANGO_BACKEND_URL + rawImageUrl;
     } else if (!rawImageUrl.startsWith('http') && !rawImageUrl.startsWith('data:')) {
        // Handle other relative paths potentially
-       rawImageUrl = 'https://api.dailypanchangam.com/' + rawImageUrl;
+       rawImageUrl = DJANGO_BACKEND_URL + '/' + rawImageUrl;
     }
   }
   const imageUrl = rawImageUrl;
@@ -168,9 +169,9 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
       
       // Fix relative URLs to point to the Django backend
       if (imageUrl.startsWith("/")) {
-        fullImageUrl = 'https://api.dailypanchangam.com' + imageUrl;
+        fullImageUrl = DJANGO_BACKEND_URL + imageUrl;
       } else if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-        fullImageUrl = 'https://api.dailypanchangam.com/' + imageUrl;
+        fullImageUrl = DJANGO_BACKEND_URL + '/' + imageUrl;
       }
 
       const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';
@@ -228,11 +229,11 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     // Fix relative URLs to point to the Django backend
     if (fullImageUrl.startsWith('/')) {
       // Use the Django backend URL for media files
-      // You can also use an env var here: process.env.NEXT_PUBLIC_DJANGO_BACKEND_URL
-      fullImageUrl = 'https://api.dailypanchangam.com' + fullImageUrl;
+      // You can also use an env var here: process.env. 
+      fullImageUrl = DJANGO_BACKEND_URL + fullImageUrl;
     } else if (!fullImageUrl.startsWith('http://') && !fullImageUrl.startsWith('https://')) {
       // If it's a relative path without leading slash (unlikely but possible)
-      fullImageUrl = 'https://api.dailypanchangam.com/' + fullImageUrl;
+      fullImageUrl = DJANGO_BACKEND_URL + '/' + fullImageUrl;
     }
     
     const wallpaperTitle = imageCaption || currentWallpaper?.name || 'Wallpaper';

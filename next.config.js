@@ -2,12 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Expose env vars to client side
+  env: {
+    DJANGO_BACKEND_URL: process.env.DJANGO_BACKEND_URL,
+  },
+
   // Only use assetPrefix in production or when explicitly needed
   // For development, Next.js serves assets from the same origin
-  // assetPrefix: process.env.NODE_ENV === 'production' ? "http://192.168.1.2:3000" : undefined,
+  // Only use assetPrefix in production or when explicitly needed
+  // For development, Next.js serves assets from the same origin
 
   images: {
-    domains: ["localhost", "127.0.0.1", "192.168.1.2"],
+    domains: ["localhost", "127.0.0.1"],
     remotePatterns: [
       { protocol: "http", hostname: "**" },
       { protocol: "https", hostname: "**" }
