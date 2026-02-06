@@ -16,6 +16,7 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const imageContainerRef = useRef(null);
@@ -27,6 +28,7 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
   useEffect(() => {
     if (isOpen) {
       setCurrentImageIndex(currentIndex);
+      setIsLoading(true);
     }
   }, [currentIndex, isOpen]);
 
@@ -97,6 +99,7 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     if (isTransitioning || currentImageIndex <= 0) return;
     setIsTransitioning(true);
     setCurrentImageIndex(currentImageIndex - 1);
+    setIsLoading(true);
     setTimeout(() => setIsTransitioning(false), 300);
   };
 
@@ -104,6 +107,7 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
     if (isTransitioning || currentImageIndex >= totalImages - 1) return;
     setIsTransitioning(true);
     setCurrentImageIndex(currentImageIndex + 1);
+    setIsLoading(true);
     setTimeout(() => setIsTransitioning(false), 300);
   };
 
@@ -363,20 +367,34 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
         {/* Image with smooth transitions */}
         <div className="relative w-full h-full flex items-center justify-center p-4">
           {imageUrl ? (
+             <>
+            {/* Loading Spinner */}
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </div>
+            )}
+            
             <img
               src={mediumImageUrl}
               alt={imageCaption || "Wallpaper"}
               className={`max-w-full max-h-[calc(100vh-200px)] w-auto h-auto object-contain transition-opacity duration-300 ${
-                isTransitioning ? 'opacity-50' : 'opacity-100'
+                isTransitioning || isLoading ? 'opacity-0' : 'opacity-100'
               }`}
               style={{ display: 'block' }}
+              onLoad={() => {
+                setIsLoading(false);
+                setIsTransitioning(false);
+              }}
               onError={(e) => {
                 console.error("Image load error:", mediumImageUrl);
                 if (e.target.src !== imageUrl) {
                   e.target.src = imageUrl; // Fallback to full size if medium fails
                 }
+                setIsLoading(false); // Stop loading even on error
               }}
             />
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center text-white gap-4">
               <FaImage size={64} className="opacity-50" />
