@@ -79,6 +79,11 @@ export default function ImagePopup({ image, wallpapers = [], currentIndex = 0, i
        rawImageUrl = DJANGO_BACKEND_URL + '/' + rawImageUrl;
     }
   }
+
+  // Force HTTPS for our domain to avoid Mixed Content issues on Android
+  if (rawImageUrl && typeof rawImageUrl === 'string' && rawImageUrl.startsWith('http://api.dailypanchangam.com')) {
+    rawImageUrl = rawImageUrl.replace('http://', 'https://');
+  }
   const imageUrl = rawImageUrl;
   
   const imageCaption = currentWallpaper?.caption || currentWallpaper?.title || currentWallpaper?.alt || currentWallpaper?.name || "";
