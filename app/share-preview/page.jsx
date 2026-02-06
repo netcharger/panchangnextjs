@@ -4,36 +4,54 @@ import DailyPanchangamShare from '../../components/DailyPanchangamShare';
 
 export default function SharePreviewPage() {
   // Mock data for preview
+  // Mock data for preview matching the structure expected by DailyPanchangamShare
   const mockData = {
-    date: "2024-02-06",
-    tithi: {
-      name: " శుక్ల పక్ష దర్శ",
-      end_time: "2024-02-06T15:30:00"
-    },
-    nakshatram: {
-      name: "శ్రవణం",
-      end_time: "2024-02-06T18:45:00"
-    },
-    varjyam: {
-      time: "రాత్రి 08:12 నుండి 09:45 వరకు"
-    },
-    rahukalam: {
-      time: "మధ్యాహ్నం 01:30 నుండి 03:00 వరకు"
-    },
-    yamagandam: {
-      time: "ఉదయం 06:00 నుండి 07:30 వరకు"
-    },
-    durmuhurtham: {
-      time: "ఉదయం 08:30 నుండి 09:15 వరకు"
-    },
-    abhijit_muhurtham: {
-      time: "మధ్యాహ్నం 12:00 నుండి 12:45 వరకు"
-    },
-    sunrise: "06:30 AM",
-    sunset: "06:15 PM",
-    sakala_gu_pt: "శుభ సమయం",
-    thidi: "త్రయోదశి",
-    vaaram: "మంగళవారం"
+    sections: [
+      {
+        title: "సాంప్రదాయ పంచాంగం",
+        items: [
+           { label: "సారాంశం", value: "క్రోధి నామ నూతన సంవత్సర శుభాకాంక్షలు" }
+        ]
+      },
+      {
+        title: "సూర్య చంద్రోదయాలు",
+        items: [
+          { label: "సూర్యోదయం", value: "06:30 AM" },
+          { label: "సూర్యాస్తమయం", value: "06:15 PM" },
+          { label: "చంద్రోదయం", value: "07:00 PM" },
+          { label: "చంద్రాస్తమయం", value: "06:00 AM" }
+        ]
+      },
+      {
+        title: "మూల పంచాంగం",
+        items: [
+          { 
+            label: "తిథులు", 
+            type: "event_list",
+            events: [{ name: "శుక్ల పక్ష తదియ", end: "05:30 PM" }]
+          },
+          { 
+            label: "నక్షత్రాలు", 
+            type: "event_list",
+            events: [{ name: "రోహిణి", end: "08:15 PM" }]
+          }
+        ]
+      },
+      {
+        title: "శుభ సమయాలు",
+        items: [
+          { label: "అభిజిత్ ముహూర్తం", value: "11:55 AM - 12:45 PM" }
+        ]
+      },
+      {
+        title: "అశుభ సమయాలు",
+        items: [
+          { label: "రాహు కాలం", value: "01:30 PM - 03:00 PM" },
+          { label: "యమగండం", value: "06:00 AM - 07:30 AM" },
+          { label: "దుర్ముహూర్తం", value: "08:30 AM - 09:15 AM" }
+        ]
+      }
+    ]
   };
 
   return (
