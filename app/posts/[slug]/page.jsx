@@ -86,8 +86,10 @@ export default function PostDetailPage() {
   const postTags = post.tags || [];
   const postImages = post.images || [];
 
+  // Safely extract posts array since fetchPostsByCategory returns { posts: [...], count: ... }
+  const relatedPostsArray = Array.isArray(relatedPosts) ? relatedPosts : (relatedPosts?.posts || []);
   // Filter out current post from related posts
-  const filteredRelatedPosts = relatedPosts.filter(p => (p.id || p.slug) !== (post.id || post.slug)).slice(0, 3);
+  const filteredRelatedPosts = relatedPostsArray.filter(p => (p.id || p.slug) !== (post.id || post.slug)).slice(0, 3);
 
   return (
     <div className="animate-fade-in pb-8">

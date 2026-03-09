@@ -86,8 +86,12 @@ export default function PostByIdPage() {
   const postTags = post.tags || [];
   const postImages = post.images || [];
 
+  // Safely extract posts array since fetchPostsByCategory returns { posts: [...], count: ... }
+  const relatedPostsArray = Array.isArray(relatedPosts) ? relatedPosts : (relatedPosts?.posts || []);
   // Filter out current post from related posts
-  const filteredRelatedPosts = relatedPosts.filter(p => (p.id || p.slug) !== (post.id || post.slug)).slice(0, 3);
+  const filteredRelatedPosts = relatedPostsArray.filter(p => (p.id || p.slug) !== (post.id || post.slug)).slice(0, 3);
+
+  const safePostImage = typeof postImage === 'string' ? postImage.replace("post_images/", "post_images/thumb/") : null;
 
   return (
     <div className="animate-fade-in pb-8">
@@ -101,10 +105,10 @@ export default function PostByIdPage() {
       </button>
 
       {/* Featured Image */}
-      {postImage && (
+      {safePostImage && (
         <div className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-6 shadow-lg">
           <Image
-            src={postImage.replace("post_images/", "post_images/thumb/")}
+            src={safePostImage}
             alt={postTitle || "Post"}
             fill
             style={{ objectFit: "cover" }}
@@ -189,7 +193,11 @@ export default function PostByIdPage() {
             <h2 className="text-xl font-bold text-indigo-700">Wallper Gallery</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-            {postImages.map((img) => (
+            {postImages.map((img) => {
+              const safeImgSrc = typeof img?.image_file === 'string' ? img.image_file.replace("post_images/", "post_images/thumb/") : null;
+              if (!safeImgSrc) return null;
+              
+              return (
               <div
                 key={img.id}
                 onClick={() => {
@@ -199,7 +207,7 @@ export default function PostByIdPage() {
                 className="relative w-full aspect-video  overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100 cursor-pointer hover:scale-[1.02] transition-transform duration-200 active:scale-[0.98]"
               >
                 <Image
-                  src={img.image_file.replace("post_images/", "post_images/thumb/")}
+                  src={safeImgSrc}
                   alt={img.caption || postTitle || "Gallery image"}
                   fill
                   style={{ objectFit: "cover" }}
@@ -209,7 +217,8 @@ export default function PostByIdPage() {
 
 
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -221,6 +230,7 @@ export default function PostByIdPage() {
           <div className="space-y-3">
             {filteredRelatedPosts.map((relatedPost) => {
               const relatedImage = relatedPost.image || relatedPost.thumbnail || relatedPost.featured_image;
+              const safeRelatedImage = typeof relatedImage === 'string' ? relatedImage.replace("post_images/", "post_images/thumb/") : null;
               const relatedTitle = relatedPost.title || relatedPost.name;
               const relatedSlug = relatedPost.slug || relatedPost.id;
               const relatedUrl = relatedPost.slug ? `/posts/${relatedPost.slug}` : `/posts/id/${relatedPost.id}`;
@@ -234,10 +244,10 @@ export default function PostByIdPage() {
                   <div className="glass rounded-xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-[0.98]">
                     <div className="flex gap-4">
                       {/* Related Post Image */}
-                      {relatedImage && (
+                      {safeRelatedImage && (
                         <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100">
                           <Image
-                            src={relatedImage.replace("post_images/", "post_images/thumb/")}
+                            src={safeRelatedImage}
                             alt={relatedTitle || "Post"}
                             fill
                             style={{ objectFit: "cover" }}
