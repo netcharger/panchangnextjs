@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useMemo } from "react";
 import { getImageSize } from "../lib/image_sizes.js";
 import ImagePopup from "./ImagePopup";
@@ -109,8 +108,8 @@ export default function Wallpaper3DStack({ wallpapers = [] }) {
                 }}
               >
                 <div className="relative w-full">
-                  <Image
-                    src={thumbnailUrl
+                  <img
+                    src={USE_STATIC_DATA ? thumbnailUrl : thumbnailUrl
                       .replace("wallpapers/", "wallpapers/thumb/")
                       .replace(".jpg", ".webp")}
                     alt={w.title || w.name || "Wallpaper"}
