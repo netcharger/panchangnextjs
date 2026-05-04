@@ -1,0 +1,15 @@
+[
+  {
+    "id": 2,
+    "name": "vinayaka",
+    "slug": "vinayaka",
+    "parent": 1,
+    "description": "",
+    "image": "/media/wallpaper_categories/istockphoto-1307831372-612x612.webp",
+    "is_active": true,
+    "order": 2,
+    "wallpaper_count": 21,
+    "children": [],
+    "created_at": "2026-01-02T08:01:02.029269+05:30"
+  }
+]

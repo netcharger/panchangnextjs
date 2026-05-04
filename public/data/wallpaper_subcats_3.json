@@ -1,0 +1,15 @@
+[
+  {
+    "id": 4,
+    "name": "shiva wallpapers",
+    "slug": "shiva-wallpapers",
+    "parent": 3,
+    "description": "",
+    "image": null,
+    "is_active": true,
+    "order": 4,
+    "wallpaper_count": 16,
+    "children": [],
+    "created_at": "2026-01-12T14:20:32.637791+05:30"
+  }
+]

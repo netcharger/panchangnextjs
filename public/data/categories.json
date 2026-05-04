@@ -1,0 +1,108 @@
+[
+  {
+    "id": 12,
+    "name": "ధర్మ సందేహాలు",
+    "slug": "dharma-sandehalu",
+    "parent": null,
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "category_image": "http://api.dailypanchangam.com/media/categories/image-removebg-preview.webp",
+    "is_active": true,
+    "get_absolute_url": "/api/posts/categories/dharma-sandehalu/",
+    "children": [
+      {
+        "id": 13,
+        "name": "శాంతులు",
+        "slug": "shanthulu",
+        "parent": 12,
+        "description": "",
+        "meta_title": "",
+        "meta_description": "",
+        "category_image": "http://api.dailypanchangam.com/media/categories/santhulu.webp",
+        "is_active": true,
+        "get_absolute_url": "/api/posts/categories/shanthulu/",
+        "children": []
+      },
+      {
+        "id": 14,
+        "name": "పండగలు",
+        "slug": "pandugalu",
+        "parent": 12,
+        "description": "",
+        "meta_title": "",
+        "meta_description": "",
+        "category_image": "http://api.dailypanchangam.com/media/categories/festivals.webp",
+        "is_active": true,
+        "get_absolute_url": "/api/posts/categories/pandugalu/",
+        "children": []
+      },
+      {
+        "id": 15,
+        "name": "వివాహ విషయాలు",
+        "slug": "marriage",
+        "parent": 12,
+        "description": "",
+        "meta_title": "",
+        "meta_description": "",
+        "category_image": "http://api.dailypanchangam.com/media/categories/marriage.webp",
+        "is_active": true,
+        "get_absolute_url": "/api/posts/categories/marriage/",
+        "children": []
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "name": "రత్నాలు&రుద్రాక్షలు",
+    "slug": "Gemstones",
+    "parent": null,
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "category_image": null,
+    "is_active": true,
+    "get_absolute_url": "/api/posts/categories/Gemstones/",
+    "children": [
+      {
+        "id": 19,
+        "name": "రుద్రాక్షలు",
+        "slug": "rudrakshalu",
+        "parent": 16,
+        "description": "",
+        "meta_title": "",
+        "meta_description": "",
+        "category_image": "http://api.dailypanchangam.com/media/categories/rudrakshalu.webp",
+        "is_active": true,
+        "get_absolute_url": "/api/posts/categories/rudrakshalu/",
+        "children": []
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "name": "వాస్తు",
+    "slug": "vasthu",
+    "parent": null,
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "category_image": "http://api.dailypanchangam.com/media/categories/vashtu.webp",
+    "is_active": true,
+    "get_absolute_url": "/api/posts/categories/vasthu/",
+    "children": []
+  },
+  {
+    "id": 18,
+    "name": "శ్లోకాలు & మంత్రాలు",
+    "slug": "slokalu-mantralu",
+    "parent": null,
+    "description": "",
+    "meta_title": "",
+    "meta_description": "",
+    "category_image": "http://api.dailypanchangam.com/media/categories/chatgpt-image-feb-28-2026-06_20_52-pm.webp",
+    "is_active": true,
+    "get_absolute_url": "/api/posts/categories/slokalu-mantralu/",
+    "children": []
+  }
+]

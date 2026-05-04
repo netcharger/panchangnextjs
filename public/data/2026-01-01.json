@@ -1,0 +1,33 @@
+{
+  "id": 1094,
+  "date": "2026-01-01",
+  "lunar_month": "పుష్య",
+  "paksha": "శుద్ధ",
+  "thithi": "త్రయోదశి",
+  "thithi_end": "20:47:00",
+  "nakshatram": "రోహిణి",
+  "nakshatram_end": "21:53:00",
+  "varjyam_time": "2:26 AM - 3:55 AM",
+  "durmuhurtham_1": "10:13 AM - 10:57 AM",
+  "durmuhurtham_2": "2:36 PM - 3:20 PM",
+  "sunrise": "06:31 AM",
+  "sunset": "05:53 PM",
+  "moonrise": "03:42 PM",
+  "moonset": "04:04 AM",
+  "abhijit_muhurtham": "11:48 AM - 12:36 PM",
+  "amrita_kalam": "09:38 PM - 11:03 PM",
+  "brahma_muhurtham": "04:55 AM - 05:43 AM",
+  "pratah_sandhya": "06:16 AM - 07:31 AM",
+  "vijaya_muhurtham": "03:29 PM - 04:17 PM",
+  "godhuli_muhurtham": "05:38 PM - 06:08 PM",
+  "sayam_sandhya": "05:53 PM - 07:08 PM",
+  "nishita_muhurtham": "11:48 PM - 12:36 AM",
+  "festivals": [
+    {
+      "festival_name": "dde",
+      "festival_reference_id": null,
+      "slug": null,
+      "image": null
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "id": 2,
+    "category": {
+      "id": 1,
+      "name": "Sivaya",
+      "slug": "sivaya",
+      "parent": null,
+      "children": [],
+      "audio_file_count": 0
+    },
+    "tags": [],
+    "title": "Ganapathi",
+    "slug": "ganapathi",
+    "description": "",
+    "mp3_file": "http://api.dailypanchangam.com/media/audio/Ganapathiye_Varuvai_Song_Ringtone_Download_Masstamilan_Instrumental.mp3",
+    "image": "http://api.dailypanchangam.com/media/audio_images/istockphoto-1307831372-612x612.jpg"
+  },
+  {
+    "id": 1,
+    "category": {
+      "id": 1,
+      "name": "Sivaya",
+      "slug": "sivaya",
+      "parent": null,
+      "children": [],
+      "audio_file_count": 0
+    },
+    "tags": [],
+    "title": "Om Namah Sivaya",
+    "slug": "om-namah-sivaya",
+    "description": "",
+    "mp3_file": "http://api.dailypanchangam.com/media/audio/Om_Namah_Shivaya_-_Krishna_Das___Bhakti.mp3",
+    "image": "http://api.dailypanchangam.com/media/audio_images/Adiyogi-Shiva-Statue-1.jpg"
+  }
+]
