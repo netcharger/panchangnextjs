@@ -27,6 +27,10 @@ def fetch_and_save(endpoint, filename):
                 results = data.get("results", [])
                 next_url = data.get("next")
                 while next_url:
+                    # Update next_url to use API_BASE if it's pointing to old domain
+                    if "api.dailypanchangam.com" in next_url:
+                        next_url = next_url.replace("https://api.dailypanchangam.com", API_BASE)
+                    
                     print(f"Fetching next page {next_url}...")
                     resp = requests.get(next_url)
                     resp.raise_for_status()
@@ -53,8 +57,6 @@ def copy_media():
             dest = MEDIA_DEST / item.name
             if item.is_dir():
                 if dest.exists():
-                    # If it's a directory, we can't just copy over it easily
-                    # But for simplicity, we'll just skip or use copytree with dirs_exist_ok in Python 3.8+
                     shutil.copytree(item, dest, dirs_exist_ok=True)
                 else:
                     shutil.copytree(item, dest)
@@ -71,20 +73,29 @@ def download_missing_media():
         try:
             with open(json_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                # Find all media URLs
+                # Find all media URLs (old and new domain)
                 import re
-                urls = re.findall(r'http[s]?://api\.dailypanchangam\.com/media/([^\s"]+)', content)
-                for rel_path in urls:
+                urls = re.findall(r'http[s]?://(?:api|mobile)\.dailypanchangam\.com/media/([^\s"]+)', content)
+                # Also find relative paths starting with /media/ if any
+                rel_urls = re.findall(r'"/media/([^"]+)"', content)
+                
+                all_paths = list(set(urls + rel_urls))
+                
+                for rel_path in all_paths:
+                    # Remove potential thumb prefix if we want full images
+                    # rel_path = rel_path.replace("thumb/", "") 
+                    
                     dest_path = MEDIA_DEST / rel_path
                     if not dest_path.exists():
                         dest_path.parent.mkdir(parents=True, exist_ok=True)
-                        url = f"http://api.dailypanchangam.com/media/{rel_path}"
+                        url = f"{API_BASE}/media/{rel_path}"
                         print(f"Downloading missing media: {url} ...")
                         try:
                             r = requests.get(url, stream=True)
                             if r.status_code == 200:
                                 with open(dest_path, 'wb') as f:
-                                    shutil.copyfileobj(r.raw, f)
+                                    for chunk in r.iter_content(chunk_size=8192):
+                                        f.write(chunk)
                         except Exception as e:
                             print(f"Failed to download {url}: {e}")
         except Exception as e:
