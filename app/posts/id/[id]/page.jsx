@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPostById, fetchPostsByCategory } from "../../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { FaClock, FaArrowLeft, FaTag, FaUser, FaImages } from "react-icons/fa";
 import ImagePopup from "../../../../components/ImagePopup";
@@ -91,7 +90,8 @@ export default function PostByIdPage() {
   // Filter out current post from related posts
   const filteredRelatedPosts = relatedPostsArray.filter(p => (p.id || p.slug) !== (post.id || post.slug)).slice(0, 3);
 
-  const safePostImage = typeof postImage === 'string' ? postImage.replace("post_images/", "post_images/thumb/") : null;
+  const { USE_STATIC_DATA } = require('../../../../lib/constants.js');
+  const safePostImage = typeof postImage === 'string' ? (USE_STATIC_DATA ? postImage : postImage.replace("post_images/", "post_images/thumb/")) : null;
 
   return (
     <div className="animate-fade-in pb-8">
@@ -107,12 +107,10 @@ export default function PostByIdPage() {
       {/* Featured Image */}
       {safePostImage && (
         <div className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-6 shadow-lg">
-          <Image
+          <img
             src={safePostImage}
             alt={postTitle || "Post"}
-            fill
-            style={{ objectFit: "cover" }}
-            className="rounded-2xl"
+            className="w-full h-full object-cover rounded-2xl"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
@@ -194,7 +192,7 @@ export default function PostByIdPage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
             {postImages.map((img) => {
-              const safeImgSrc = typeof img?.image_file === 'string' ? img.image_file.replace("post_images/", "post_images/thumb/") : null;
+              const safeImgSrc = typeof img?.image_file === 'string' ? (USE_STATIC_DATA ? img.image_file : img.image_file.replace("post_images/", "post_images/thumb/")) : null;
               if (!safeImgSrc) return null;
               
               return (
@@ -206,12 +204,10 @@ export default function PostByIdPage() {
                 }}
                 className="relative w-full aspect-video  overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100 cursor-pointer hover:scale-[1.02] transition-transform duration-200 active:scale-[0.98]"
               >
-                <Image
+                <img
                   src={safeImgSrc}
                   alt={img.caption || postTitle || "Gallery image"}
-                  fill
-                  style={{ objectFit: "cover" }}
-
+                  className="w-full h-full object-cover"
                 />
 
 
@@ -230,7 +226,7 @@ export default function PostByIdPage() {
           <div className="space-y-3">
             {filteredRelatedPosts.map((relatedPost) => {
               const relatedImage = relatedPost.image || relatedPost.thumbnail || relatedPost.featured_image;
-              const safeRelatedImage = typeof relatedImage === 'string' ? relatedImage.replace("post_images/", "post_images/thumb/") : null;
+              const safeRelatedImage = typeof relatedImage === 'string' ? (USE_STATIC_DATA ? relatedImage : relatedImage.replace("post_images/", "post_images/thumb/")) : null;
               const relatedTitle = relatedPost.title || relatedPost.name;
               const relatedSlug = relatedPost.slug || relatedPost.id;
               const relatedUrl = relatedPost.slug ? `/posts/${relatedPost.slug}` : `/posts/id/${relatedPost.id}`;
@@ -246,12 +242,10 @@ export default function PostByIdPage() {
                       {/* Related Post Image */}
                       {safeRelatedImage && (
                         <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100">
-                          <Image
+                          <img
                             src={safeRelatedImage}
                             alt={relatedTitle || "Post"}
-                            fill
-                            style={{ objectFit: "cover" }}
-                            className="group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
                       )}

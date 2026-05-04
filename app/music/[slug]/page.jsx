@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { fetchMusicCategoryBySlug, fetchAudioFilesByCategory } from "../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { FaChevronLeft, FaMusic, FaHeadphones } from "react-icons/fa";
 import { getImageSize } from "../../../lib/image_sizes";
 import MusicList from "../../../components/MusicList";
@@ -155,12 +154,10 @@ export default function MusicCategoryPage() {
                         {/* Category Image or Placeholder */}
                         <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
                           {imageUrl ? (
-                            <Image
+                            <img
                               src={imageUrl}
                               alt={subCategory.name || subCategory.title || "Sub Category"}
-                              fill
-                              style={{ objectFit: "cover" }}
-                              className="group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400">

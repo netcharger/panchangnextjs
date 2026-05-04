@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { getImageSize } from "../lib/image_sizes.js";
 import { FaMusic } from "react-icons/fa";
 
@@ -32,12 +31,10 @@ export default function MusicCategoriesRow({ categories = [] }) {
                 <div className="relative w-32 h-40 rounded-2xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-95">
                   {/* Category Image or Placeholder */}
                   {imageUrl ? (
-                    <Image
+                    <img
                       src={imageUrl}
                       alt={category.name || category.title || "Category"}
-                      fill
-                      style={{ objectFit: "cover" }}
-                      className="group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 flex items-center justify-center">

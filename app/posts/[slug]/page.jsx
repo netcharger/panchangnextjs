@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPostBySlug, fetchPostsByCategory } from "../../../lib/api.js";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { FaClock, FaArrowLeft, FaTag, FaUser, FaImages } from "react-icons/fa";
 import ImagePopup from "../../../components/ImagePopup";
@@ -105,12 +104,10 @@ export default function PostDetailPage() {
       {/* Featured Image */}
       {postImage && (
         <div className="relative w-full h-64 md:h-96 rounded-2xl overflow-hidden mb-6 shadow-lg">
-          <Image
+          <img
             src={postImage}
             alt={postTitle || "Post"}
-            fill
-            style={{ objectFit: "cover" }}
-            className="rounded-2xl"
+            className="w-full h-full object-cover rounded-2xl"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
@@ -200,12 +197,10 @@ export default function PostDetailPage() {
                 }}
                 className="relative w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100 cursor-pointer hover:scale-[1.02] transition-transform duration-200 active:scale-[0.98]"
               >
-                <Image
+                <img
                   src={img.image_file}
                   alt={img.caption || postTitle || "Gallery image"}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  className="rounded-xl"
+                  className="w-full h-full object-cover rounded-xl"
                 />
                 {img.caption && (
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
@@ -240,12 +235,10 @@ export default function PostDetailPage() {
                       {/* Related Post Image */}
                       {relatedImage && (
                         <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100">
-                          <Image
+                          <img
                             src={relatedImage}
                             alt={relatedTitle || "Post"}
-                            fill
-                            style={{ objectFit: "cover" }}
-                            className="group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
                       )}

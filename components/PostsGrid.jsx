@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { FaClock, FaTag, FaFolder } from "react-icons/fa";
 import { getImageSize } from "../lib/image_sizes.js";
@@ -52,12 +51,10 @@ export default function PostsGrid({ posts = [] }) {
                 {/* Post Image - Left Side */}
                 <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden bg-gradient-to-br from-saffron-100 to-indigo-100">
                   {postImage ? (
-                      <Image
+                      <img
                         src={getImageSize(postImage, "post", "thumb") || postImage}
                         alt={postTitle || "Post"}
-                        fill
-                        style={{ objectFit: "cover" }}
-                        className="tiny group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         onError={(e) => {
                           // Fallback to original image if sized version fails
                           if (e.target.src !== postImage) {

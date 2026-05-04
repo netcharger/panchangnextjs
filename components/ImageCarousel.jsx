@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
@@ -82,13 +81,10 @@ export default function ImageCarousel({ images = [], autoPlay = true, interval =
             
             const content = (
               <>
-                <Image
+                <img
                   src={getImageUrl(image)}
                   alt={getImageTitle(image)}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  priority={index === 0}
-                  className={`rounded-xl transition-transform duration-700 ${
+                  className={`w-full h-full object-cover rounded-xl transition-transform duration-700 ${
                     normalizedLink ? "hover:scale-105 cursor-pointer" : ""
                   }`}
                 />

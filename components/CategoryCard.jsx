@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 
@@ -10,12 +9,10 @@ export default function CategoryCard({ category }) {
     >
       <div className="glass rounded-2xl overflow-hidden shadow-soft border border-white/50 hover:shadow-lg transition-all duration-200 active:scale-95 h-full flex flex-col">
         <div className="relative h-40 w-full overflow-hidden">
-          <Image 
+          <img 
             src={category.image || "/icons/placeholder.png"} 
             alt={category.title} 
-            fill 
-            style={{ objectFit: "cover" }}
-            className="group-hover:scale-110 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
           <div className="absolute bottom-3 left-3 right-3">

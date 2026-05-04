@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchCategories } from "../../lib/api.js";
 import { FaArrowLeft, FaSearch } from "react-icons/fa";
-import Image from "next/image";
 import Link from "next/link";
 import { getImageSize } from "../../lib/image_sizes.js";
 
@@ -114,12 +113,10 @@ export default function CategoriesPage() {
                     isSelected ? "bg-green-500" : "bg-gray-200"
                   }`}>
                     {(category.category_image || category.image) ? (
-                      <Image
+                      <img
                         src={getImageSize(category.category_image || category.image, "category", "thumb")}
                         alt={category.name || category.title}
-                        width={40}
-                        height={40}
-                        className="object-cover"
+                        className="w-10 h-10 object-cover"
                       />
                     ) : (
                       <span className="text-white text-lg">📁</span>
@@ -212,11 +209,10 @@ export default function CategoriesPage() {
                     >
                       <div className="relative aspect-square overflow-hidden bg-gray-100">
                         {subCatImage ? (
-                          <Image
+                          <img
                             src={getImageSize(subCatImage, "category", "thumb") || subCatImage}
                             alt={subCatTitle || "Subcategory"}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200">
