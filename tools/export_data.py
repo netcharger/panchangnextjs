@@ -48,12 +48,47 @@ def fetch_and_save(endpoint, filename):
 def copy_media():
     print(f"Copying media from {MEDIA_SRC} to {MEDIA_DEST}...")
     if MEDIA_SRC.exists():
-        if MEDIA_DEST.exists():
-            shutil.rmtree(MEDIA_DEST)
-        shutil.copytree(MEDIA_SRC, MEDIA_DEST)
+        # Use a more additive copy instead of deleting everything
+        for item in MEDIA_SRC.glob('*'):
+            dest = MEDIA_DEST / item.name
+            if item.is_dir():
+                if dest.exists():
+                    # If it's a directory, we can't just copy over it easily
+                    # But for simplicity, we'll just skip or use copytree with dirs_exist_ok in Python 3.8+
+                    shutil.copytree(item, dest, dirs_exist_ok=True)
+                else:
+                    shutil.copytree(item, dest)
+            else:
+                shutil.copy2(item, dest)
         print("Media copied successfully.")
     else:
         print(f"Source media directory {MEDIA_SRC} does not exist!")
+
+def download_missing_media():
+    print("Checking for missing media files...")
+    # Find all JSON files in output dir
+    for json_file in OUTPUT_DIR.glob("*.json"):
+        try:
+            with open(json_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                # Find all media URLs
+                import re
+                urls = re.findall(r'http[s]?://api\.dailypanchangam\.com/media/([^\s"]+)', content)
+                for rel_path in urls:
+                    dest_path = MEDIA_DEST / rel_path
+                    if not dest_path.exists():
+                        dest_path.parent.mkdir(parents=True, exist_ok=True)
+                        url = f"http://api.dailypanchangam.com/media/{rel_path}"
+                        print(f"Downloading missing media: {url} ...")
+                        try:
+                            r = requests.get(url, stream=True)
+                            if r.status_code == 200:
+                                with open(dest_path, 'wb') as f:
+                                    shutil.copyfileobj(r.raw, f)
+                        except Exception as e:
+                            print(f"Failed to download {url}: {e}")
+        except Exception as e:
+            print(f"Error processing {json_file}: {e}")
 
 def main():
     # 1. Carousel Images
@@ -112,6 +147,9 @@ def main():
 
     # 7. Media files
     copy_media()
+    
+    # 8. Download missing media (Smart update)
+    download_missing_media()
 
 if __name__ == "__main__":
     main()
